@@ -10,6 +10,12 @@ from functions import compute_plate_buoyancy, compute_plate_isotherm
 from functions import compute_vsp_withDP
 plt.ioff()
 
+
+def ensure_parent_dir(path):
+	parent = os.path.dirname(path)
+	if parent and not os.path.isdir(parent):
+		os.makedirs(parent)
+
 # vt data to compare
 vt_ref=str(sys.argv[1])    				# hs3, nnr, sa
 formulation=int(sys.argv[2])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
@@ -270,10 +276,14 @@ elif formulation == 6: # power law, just slab pull (with prefactor)
 	signs_name=''.join(['predictions/new/powerlaw/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])
 	rms_name=''.join(['predictions/new/powerlaw/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])	
 
+ensure_parent_dir(plot_name)
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
 
 # plot map
 rms_txt_name=''.join([rms_name,'.txt'])
+ensure_parent_dir(rms_txt_name)
+if not os.path.isdir('tmp'):
+	os.makedirs('tmp')
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
 np.savetxt('tmp/rms_separated.txt', vsps, fmt='%.4f')  
 

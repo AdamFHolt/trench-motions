@@ -5,11 +5,33 @@ matches=${3-""}
 rms_or_signs=${4-""} # 0 = signs, 1 = rms
 
 ofilepng="$predicted".png
-rm $ofile $ofilepng 2> /dev/null
+rm -f "$ofilepng" 2> /dev/null
 
-datasets=/home/aholt/Dropbox/Izu_3D/data_stuff/datasets
+# Set DATASETS_DIR to the GMT dataset bundle root.
+# Expected files under this root:
+# - age/age.3.6.NaN.grd
+# - plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt
+datasets=${DATASETS_DIR:-data/gmt_datasets}
 age_grd=$datasets/age/age.3.6.NaN.grd
 vt=data/vt/$observed
+pb_file=$datasets/plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt
+
+if [ ! -f "$age_grd" ]; then
+  echo "Missing age grid: $age_grd" >&2
+  echo "Set DATASETS_DIR to your dataset root." >&2
+  exit 1
+fi
+
+if [ ! -f "$pb_file" ]; then
+  echo "Missing plate boundary file: $pb_file" >&2
+  echo "Set DATASETS_DIR to your dataset root." >&2
+  exit 1
+fi
+
+if [ ! -f "$vt" ]; then
+  echo "Missing observed trench velocity file: $vt" >&2
+  exit 1
+fi
 
 gmtset FONT_LABEL 13p,1,black FONT_ANNOT_PRIMARY 11.5p,1,black
 gmtset MAP_FRAME_PEN thin,black MAP_TICK_PEN_PRIMARY thin,black MAP_TICK_PEN_SECONDARY thin,black
@@ -24,7 +46,7 @@ makecpt -T-60/60/5 -Cred2green -D > vt.cpt
 psbasemap $reg $proj  -Ba60f30/a30f15:."":Wesn  -K -Y+9.6 > tmp.ps
 grdview -Qc $age_grd   -Cage.cpt $reg $proj  -K -P -O >> tmp.ps 
 pscoast $reg $proj -Di -K  -O -Gdarkgrey -P >> tmp.ps
-psxy $datasets/plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt $reg $proj -O  -K   -W0.5,darkmagenta  >> tmp.ps
+psxy $pb_file $reg $proj -O  -K   -W0.5,darkmagenta  >> tmp.ps
 psscale --FONT_LABEL=10p,Helvetica,black  --FONT_ANNOT_PRIMARY=8p,Helvetica,black -Ba50:"age  [Ma]": -O -D0.75i/3.4i/2.5c/0.25ch -E -Cage.cpt  -K >> tmp.ps 
 psscale --FONT_LABEL=10p,Helvetica,black  --FONT_ANNOT_PRIMARY=8p,Helvetica,black -Ba25:"v@-T@-  [mm/yr]": -O -D2i/3.4i/2.5c/0.25ch -E -K -Cvt.cpt  >> tmp.ps 
 scale=90 # trench motion, in mm/yr
@@ -34,7 +56,7 @@ gawk -v s=$scale  '{print($1,$2,$6,$3,-1.0*($6/s))}' $vt | psxy $reg $proj  -O  
 psbasemap $reg $proj  -Ba60f30/a30f15:."":WeSn -O -K -Y-9.6 >> tmp.ps
 grdview -Qc $age_grd   -Cage.cpt $reg $proj  -K -P -O >> tmp.ps
 pscoast $reg $proj -Di -K  -O -Gdarkgrey -P >> tmp.ps
-psxy $datasets/plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt $reg $proj -O  -K   -W0.5,darkmagenta  >> tmp.ps
+psxy $pb_file $reg $proj -O  -K   -W0.5,darkmagenta  >> tmp.ps
 gawk -v s=$scale  '{print($2,$1,$3*10.0,$4,-1.0*(($3*10.0)/s))}' "$predicted".txt | psxy $reg $proj  -O  -SV0.14i+e+a55 -W1.3p,darkslategray  -Cvt.cpt  -K >> tmp.ps
 if [ $rms_or_signs -eq 1 ];
 then

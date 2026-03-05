@@ -9,6 +9,12 @@ import matplotlib.cm as cm
 from functions import compute_plate_buoyancy, compute_plate_isotherm, compute_vsp_withDP
 plt.ioff()
 
+
+def ensure_parent_dir(path):
+	parent = os.path.dirname(path)
+	if parent and not os.path.isdir(parent):
+		os.makedirs(parent)
+
 # vt data to compare
 vt_ref=str(sys.argv[1])    				# hs3, nnr, sa
 formulation=int(sys.argv[2])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, \
@@ -325,11 +331,16 @@ elif formulation == 9:  # regular, with OP drag
 	plot_name=''.join(['plots/new/linear/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_withOP.png'])
 	signs_name=''.join(['predictions/new/linear/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
 	rms_name=''.join(['predictions/new/linear/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
+ensure_parent_dir(plot_name)
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
 
 # plot map
 signs_txt_name=''.join([signs_name,'.txt'])
 rms_txt_name=''.join([rms_name,'.txt'])
+ensure_parent_dir(signs_txt_name)
+ensure_parent_dir(rms_txt_name)
+if not os.path.isdir('tmp'):
+	os.makedirs('tmp')
 np.savetxt(signs_txt_name, signs_predicted_vts, fmt='%.4f')  
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
 np.savetxt('tmp/signs_separated.txt', signs_separated, fmt='%.4f')  
