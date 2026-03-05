@@ -17,18 +17,29 @@ This repository contains analytical subduction/trench-motion modeling scripts an
   - `create_trench_motion_table.py`
   - `plot_trench_motions.sh`
 - Legacy/deprecated:
-  - `legacy/compute_rate_plots.py`
-  - `legacy/compute_rate_plots_vtvp.py`
-  - `legacy/many_runs_linear-viscosity.sh`
-  - `legacy/many_runs_nonlinear-viscosity.sh`
-  - `legacy/old/` (historical versions)
-  - `legacy/misc/` (older analytical notebooks/scripts)
+  - `archive/legacy/compute_rate_plots.py`
+  - `archive/legacy/compute_rate_plots_vtvp.py`
+  - `archive/legacy/many_runs_linear-viscosity.sh`
+  - `archive/legacy/many_runs_nonlinear-viscosity.sh`
+  - `archive/legacy/old/` (historical versions)
+  - `archive/legacy/misc/` (older analytical notebooks/scripts)
 
 ## Data and outputs
 - Inputs: `data/` and `data/vt/`.
 - Active run outputs: `runs/` (recommended via `--out-prefix`/configs).
 - Archived historical generated outputs: `archive/generated/`.
 - Archived reference/historical small files: `archive/reference/`.
+- Archived legacy code: `archive/legacy/`.
+
+## Canonical student workflow
+Run this exact sequence from repo root for a reproducible fast sweep + summary:
+```bash
+source .venv/bin/activate
+make run-matrix-smoke-with-summary
+```
+Outputs:
+- Sweep products: `runs/matrix/...`
+- Summary table/plots: `runs/matrix/summary/`
 
 ## Runtime notes
 - Active scripts are Python 3 compatible.
