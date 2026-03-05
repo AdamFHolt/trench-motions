@@ -19,6 +19,7 @@ class TestCliSmoke(unittest.TestCase):
         self.run_cmd(["python3", "compute_rates_misfit.py", "--help"])
         self.run_cmd(["python3", "compute_rates_single.py", "--help"])
         self.run_cmd(["python3", "create_trench_motion_table.py", "--help"])
+        self.run_cmd(["python3", "science_summary.py", "--help"])
 
     def test_make_smoke(self):
         self.run_cmd(["make", "smoke"])

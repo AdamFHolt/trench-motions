@@ -129,6 +129,16 @@ Fast matrix sanity pass (forces smoke grid):
 make run-science-matrix-smoke
 ```
 
+Batch science summary tables/plots from `runs/science/*`:
+```bash
+make science-summary
+```
+
+One-shot run + summary:
+```bash
+make run-science-matrix-smoke-with-summary
+```
+
 Manual quick plot (no GMT) from existing files:
 ```bash
 make quick-plot

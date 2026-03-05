@@ -32,8 +32,10 @@ SCIENCE_CONFIGS ?= \
 	configs/science/powerlaw_hs3.yaml \
 	configs/science/powerlaw_nnr.yaml \
 	configs/science/powerlaw_sa.yaml
+SCIENCE_RUNS_DIR ?= runs/science
+SCIENCE_SUMMARY_DIR ?= runs/science/summary
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-science-matrix run-science-matrix-smoke quick-plot test
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-science-matrix run-science-matrix-smoke science-summary run-science-matrix-with-summary run-science-matrix-smoke-with-summary quick-plot test
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -81,6 +83,13 @@ run-science-matrix-smoke:
 		echo "[science-smoke] $$cfg"; \
 		$(PYTHON) compute_rates_misfit.py --config $$cfg --smoke || exit $$?; \
 	done
+
+science-summary:
+	$(PYTHON) science_summary.py --runs-dir $(SCIENCE_RUNS_DIR) --output-dir $(SCIENCE_SUMMARY_DIR)
+
+run-science-matrix-with-summary: run-science-matrix science-summary
+
+run-science-matrix-smoke-with-summary: run-science-matrix-smoke science-summary
 
 quick-plot:
 	$(PYTHON) quick_plot.py \
