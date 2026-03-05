@@ -1,0 +1,21 @@
+PYTHON ?= python3
+
+SMOKE_REF ?= sa
+SMOKE_FORMULATION ?= 1
+SMOKE_INCLUDE_DP ?= 1
+SMOKE_DP_REF ?= 23.5e6
+SMOKE_TRANS_STRAIN ?= 1e-13
+SMOKE_PSP_FACTOR ?= 0.25
+SMOKE_INCLUDE_RP ?= 0
+
+.PHONY: smoke
+smoke:
+	$(PYTHON) compute_rates_misfit.py \
+		$(SMOKE_REF) \
+		$(SMOKE_FORMULATION) \
+		$(SMOKE_INCLUDE_DP) \
+		$(SMOKE_DP_REF) \
+		$(SMOKE_TRANS_STRAIN) \
+		$(SMOKE_PSP_FACTOR) \
+		$(SMOKE_INCLUDE_RP) \
+		--smoke --skip-map

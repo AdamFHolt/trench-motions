@@ -2,3 +2,4 @@ predictions/
 plots/
 __pycache__/
 *.pyc
+tmp/

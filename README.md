@@ -39,6 +39,16 @@ Example misfit sweep:
 python3 compute_rates_misfit.py sa 4 1 23.5e6 1e-13 0.25 1
 ```
 
+Smoke run (fast grid, no GMT map plotting):
+```bash
+python3 compute_rates_misfit.py sa 1 1 23.5e6 1e-13 0.25 0 --smoke --skip-map
+```
+
+Equivalent via Makefile:
+```bash
+make smoke
+```
+
 Example single run:
 ```bash
 python3 compute_rates_single.py sa 4 1 23.5e6 1e-13 0.25 1e21 1e22

@@ -15,6 +15,17 @@ def ensure_parent_dir(path):
 	if parent and not os.path.isdir(parent):
 		os.makedirs(parent)
 
+
+extra_args = set(sys.argv[8:])
+valid_extra_args = set(['--smoke', '--skip-map'])
+unknown_extra_args = extra_args - valid_extra_args
+if len(unknown_extra_args) > 0:
+	print("Unknown arguments: %s" % ", ".join(sorted(unknown_extra_args)))
+	print("Supported optional arguments: --smoke, --skip-map")
+	sys.exit(2)
+smoke_mode = '--smoke' in extra_args
+skip_map = '--skip-map' in extra_args
+
 # vt data to compare
 vt_ref=str(sys.argv[1])    				# hs3, nnr, sa
 formulation=int(sys.argv[2])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, \
@@ -65,10 +76,13 @@ w_ref = 2224e3 * 2 # [m], factor 2 to convert from half width to full width,  (2
 trenchv_ref = 5.0 * vel_converter # [cm/yr] -> [m/s], positive (as here) = trench retreat
 
 # parameter space and error matrices
-asthen_viscs = np.linspace(asth_visc_min,asth_visc_max,41)
-lith_viscs = np.linspace(lith_visc_min,lith_visc_max,41)
-yield_stresses = np.linspace(yield_min,yield_max,41)
-prefactors = np.linspace(pre_min,pre_max,41)
+num_grid = 41
+if smoke_mode:
+	num_grid = 3
+asthen_viscs = np.linspace(asth_visc_min,asth_visc_max,num_grid)
+lith_viscs = np.linspace(lith_visc_min,lith_visc_max,num_grid)
+yield_stresses = np.linspace(yield_min,yield_max,num_grid)
+prefactors = np.linspace(pre_min,pre_max,num_grid)
 asthen_visc = np.zeros((len(lith_viscs),len(asthen_viscs)))
 lith_visc = np.zeros((len(lith_viscs),len(asthen_viscs)))
 yield_stress = np.zeros((len(yield_stresses),len(asthen_viscs)))
@@ -216,15 +230,16 @@ for k in range(0,len(lith_viscs)):
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
 		for i in range(0,n):
-			rms_sum = rms_sum + (vt_estimate[i] - vt_actual[i])**2;
-			stored_rms_vals[i] = np.abs(vt_estimate[i] - vt_actual[i])
+			diff = float(vt_estimate[i,0] - vt_actual[i,0])
+			rms_sum = rms_sum + diff**2;
+			stored_rms_vals[i] = np.abs(diff)
 			if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
 				num_sign_matches = num_sign_matches + 1
 				stored_sign_vals[i] = 1
 			elif (vt_estimate[i] > -0.3 and vt_estimate[i] <= 0.3) and (vt_actual[i] > -0.3 and vt_actual[i] <= 0.3):
 				num_sign_matches = num_sign_matches + 1
 				stored_sign_vals[i] = 1
-		rms_act = np.sqrt(rms_sum / float(n))
+		rms_act = float(np.sqrt(rms_sum / float(n)))
 		rms[k,j] = rms_act;
 		sign[k,j] = num_sign_matches;
 
@@ -347,8 +362,11 @@ np.savetxt('tmp/signs_separated.txt', signs_separated, fmt='%.4f')
 np.savetxt('tmp/rms_separated.txt', rms_separated, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
-FNULL = open(os.devnull, 'w')
-print("plotting map")
-subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,'tmp/signs_separated','0'],stdout=FNULL, stderr=subprocess.STDOUT)
-subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'],stdout=FNULL, stderr=subprocess.STDOUT)
+if skip_map:
+	print("skipping map plotting (--skip-map)")
+else:
+	FNULL = open(os.devnull, 'w')
+	print("plotting map")
+	subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,'tmp/signs_separated','0'],stdout=FNULL, stderr=subprocess.STDOUT)
+	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'],stdout=FNULL, stderr=subprocess.STDOUT)
 print("output: %s" % plot_name)

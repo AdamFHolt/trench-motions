@@ -2,6 +2,13 @@ import scipy, numpy as np
 import scipy.special
 import scipy.integrate
 
+
+def integrate_simpson(y, x):
+	if hasattr(scipy.integrate, 'simps'):
+		return scipy.integrate.simps(y=y, x=x, even='avg')
+	return scipy.integrate.simpson(y=y, x=x)
+
+
 def compute_plate_buoyancy(age,DT,k,alpha,rho0):
 
 	delz=0.5;    # km
@@ -13,7 +20,7 @@ def compute_plate_buoyancy(age,DT,k,alpha,rho0):
 	z=np.arange(0,zmax,delz)*1e3
 	T_erf= T1 - DT * scipy.special.erfc(z/(2*np.sqrt(k*age*1e6*365*24*60*60)));
 	B_erf= (T1 - T_erf) * rho0 * alpha;
-	B_erf_int=scipy.integrate.simps(y=B_erf, x=z, even='avg')
+	B_erf_int=integrate_simpson(y=B_erf, x=z)
 
 	return B_erf_int
 
