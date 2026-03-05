@@ -31,6 +31,20 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 - Python dependencies: `numpy`, `scipy`, `matplotlib`.
 - Map plotting dependencies: GMT tools (`gmtset`, `makecpt`, `psxy`, `grdview`, etc.), `eps2eps`, and ImageMagick `convert`.
 
+## Environment Setup
+Quick setup:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Equivalent via Makefile:
+```bash
+make venv
+make install
+```
+
 ## Running
 From the repository root.
 

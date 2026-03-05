@@ -1,4 +1,5 @@
 PYTHON ?= python3
+VENV_DIR ?= .venv
 
 SMOKE_REF ?= sa
 SMOKE_FORMULATION ?= 1
@@ -22,7 +23,14 @@ QUICK_OBSERVED ?= data/vt/tnew.sa.dat
 QUICK_OUTPUT ?= plots/new/quick/quick_check.png
 QUICK_TITLE ?= Manual quick check
 
-.PHONY: smoke single-smoke quick-plot test
+.PHONY: venv install smoke single-smoke quick-plot test
+venv:
+	$(PYTHON) -m venv $(VENV_DIR)
+
+install:
+	$(VENV_DIR)/bin/pip install --upgrade pip
+	$(VENV_DIR)/bin/pip install -r requirements.txt
+
 smoke:
 	$(PYTHON) compute_rates_misfit.py \
 		$(SMOKE_REF) \
