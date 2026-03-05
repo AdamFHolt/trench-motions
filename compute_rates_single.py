@@ -32,6 +32,7 @@ Arguments:
 
 Optional flags:
   --skip-map  Skip GMT map plotting subprocess call.
+  --out-prefix <dir>  Write generated outputs under a custom base directory.
 """
 
 
@@ -42,19 +43,34 @@ if '--help' in raw_args or '-h' in raw_args:
 if len(raw_args) < 8:
 	print(USAGE)
 	sys.exit(2)
-if len(raw_args) > 8 and any(not a.startswith('--') for a in raw_args[8:]):
-	print(USAGE)
-	sys.exit(2)
-
 main_args = raw_args[:8]
-extra_args = set(raw_args[8:])
-valid_extra_args = set(['--skip-map'])
-unknown_extra_args = extra_args - valid_extra_args
-if len(unknown_extra_args) > 0:
-	print("Unknown arguments: %s" % ", ".join(sorted(unknown_extra_args)))
-	print("Supported optional arguments: --skip-map")
-	sys.exit(2)
-skip_map = '--skip-map' in extra_args
+extra_args = raw_args[8:]
+
+skip_map = False
+out_prefix = ''
+i = 0
+while i < len(extra_args):
+	arg = extra_args[i]
+	if arg == '--skip-map':
+		skip_map = True
+		i += 1
+	elif arg == '--out-prefix':
+		if i + 1 >= len(extra_args):
+			print("Missing value for --out-prefix")
+			print(USAGE)
+			sys.exit(2)
+		out_prefix = extra_args[i + 1]
+		i += 2
+	else:
+		print("Unknown argument: %s" % arg)
+		print(USAGE)
+		sys.exit(2)
+
+
+def out_path(relative_path):
+	if out_prefix:
+		return os.path.join(out_prefix, relative_path)
+	return relative_path
 
 # vt data to compare
 vt_ref=str(main_args[0])    				# hs3, nnr, sa
@@ -314,16 +330,20 @@ elif formulation == 6: # power law, just slab pull (with prefactor)
 	plot_name=''.join(['plots/new/powerlaw/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_just-slab-pull.png'])
 	rms_name=''.join(['predictions/new/powerlaw/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])	
 
+plot_name = out_path(plot_name)
+rms_name = out_path(rms_name)
 ensure_parent_dir(plot_name)
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
 
 # plot map
 rms_txt_name=''.join([rms_name,'.txt'])
 ensure_parent_dir(rms_txt_name)
-if not os.path.isdir('tmp'):
-	os.makedirs('tmp')
+tmp_dir = out_path('tmp')
+if not os.path.isdir(tmp_dir):
+	os.makedirs(tmp_dir)
+rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
-np.savetxt('tmp/rms_separated.txt', vsps, fmt='%.4f')  
+np.savetxt(''.join([rms_sep_base, '.txt']), vsps, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 if skip_map:
@@ -341,5 +361,5 @@ if skip_map:
 	except subprocess.CalledProcessError as exc:
 		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
 else:
-	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])
+	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,rms_sep_base,'1'])
 print("output: %s" % plot_name)

@@ -31,6 +31,7 @@ Arguments:
 Optional flags:
   --smoke     Use a small 3x3 parameter grid for fast checks.
   --skip-map  Skip GMT map plotting subprocess calls.
+  --out-prefix <dir>  Write generated outputs under a custom base directory.
 """
 
 
@@ -41,20 +42,38 @@ if '--help' in raw_args or '-h' in raw_args:
 if len(raw_args) < 7:
 	print(USAGE)
 	sys.exit(2)
-if len(raw_args) > 7 and any(not a.startswith('--') for a in raw_args[7:]):
-	print(USAGE)
-	sys.exit(2)
-
 main_args = raw_args[:7]
-extra_args = set(raw_args[7:])
-valid_extra_args = set(['--smoke', '--skip-map'])
-unknown_extra_args = extra_args - valid_extra_args
-if len(unknown_extra_args) > 0:
-	print("Unknown arguments: %s" % ", ".join(sorted(unknown_extra_args)))
-	print("Supported optional arguments: --smoke, --skip-map")
-	sys.exit(2)
-smoke_mode = '--smoke' in extra_args
-skip_map = '--skip-map' in extra_args
+extra_args = raw_args[7:]
+
+smoke_mode = False
+skip_map = False
+out_prefix = ''
+i = 0
+while i < len(extra_args):
+	arg = extra_args[i]
+	if arg == '--smoke':
+		smoke_mode = True
+		i += 1
+	elif arg == '--skip-map':
+		skip_map = True
+		i += 1
+	elif arg == '--out-prefix':
+		if i + 1 >= len(extra_args):
+			print("Missing value for --out-prefix")
+			print(USAGE)
+			sys.exit(2)
+		out_prefix = extra_args[i + 1]
+		i += 2
+	else:
+		print("Unknown argument: %s" % arg)
+		print(USAGE)
+		sys.exit(2)
+
+
+def out_path(relative_path):
+	if out_prefix:
+		return os.path.join(out_prefix, relative_path)
+	return relative_path
 
 # vt data to compare
 vt_ref=str(main_args[0])    				# hs3, nnr, sa
@@ -388,6 +407,9 @@ elif formulation == 9:  # regular, with OP drag
 	plot_name=''.join(['plots/new/linear/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_withOP.png'])
 	signs_name=''.join(['predictions/new/linear/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
 	rms_name=''.join(['predictions/new/linear/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
+plot_name = out_path(plot_name)
+signs_name = out_path(signs_name)
+rms_name = out_path(rms_name)
 ensure_parent_dir(plot_name)
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
 
@@ -396,12 +418,15 @@ signs_txt_name=''.join([signs_name,'.txt'])
 rms_txt_name=''.join([rms_name,'.txt'])
 ensure_parent_dir(signs_txt_name)
 ensure_parent_dir(rms_txt_name)
-if not os.path.isdir('tmp'):
-	os.makedirs('tmp')
+tmp_dir = out_path('tmp')
+if not os.path.isdir(tmp_dir):
+	os.makedirs(tmp_dir)
+signs_sep_base = os.path.join(tmp_dir, 'signs_separated')
+rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
 np.savetxt(signs_txt_name, signs_predicted_vts, fmt='%.4f')  
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
-np.savetxt('tmp/signs_separated.txt', signs_separated, fmt='%.4f')  
-np.savetxt('tmp/rms_separated.txt', rms_separated, fmt='%.4f')  
+np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')  
+np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 if skip_map:
@@ -421,6 +446,6 @@ if skip_map:
 else:
 	FNULL = open(os.devnull, 'w')
 	print("plotting map")
-	subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,'tmp/signs_separated','0'],stdout=FNULL, stderr=subprocess.STDOUT)
-	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'],stdout=FNULL, stderr=subprocess.STDOUT)
+	subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,signs_sep_base,'0'],stdout=FNULL, stderr=subprocess.STDOUT)
+	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,rms_sep_base,'1'],stdout=FNULL, stderr=subprocess.STDOUT)
 print("output: %s" % plot_name)
