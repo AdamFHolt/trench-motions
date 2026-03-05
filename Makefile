@@ -32,10 +32,17 @@ MATRIX_CONFIGS ?= \
 	configs/matrix/powerlaw_hs3.yaml \
 	configs/matrix/powerlaw_nnr.yaml \
 	configs/matrix/powerlaw_sa.yaml
+MATRIX_MAP_CONFIGS ?= \
+	configs/matrix_maps/linear_hs3.yaml \
+	configs/matrix_maps/linear_nnr.yaml \
+	configs/matrix_maps/linear_sa.yaml \
+	configs/matrix_maps/powerlaw_hs3.yaml \
+	configs/matrix_maps/powerlaw_nnr.yaml \
+	configs/matrix_maps/powerlaw_sa.yaml
 MATRIX_RUNS_DIR ?= runs/matrix
 MATRIX_SUMMARY_DIR ?= runs/matrix/summary
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary quick-plot test
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary run-matrix-maps-with-summary quick-plot test
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -84,12 +91,22 @@ run-matrix-smoke:
 		$(PYTHON) compute_rates_misfit.py --config $$cfg --smoke || exit $$?; \
 	done
 
+run-matrix-maps:
+	@for cfg in $(MATRIX_MAP_CONFIGS); do \
+		echo "[matrix-maps] $$cfg"; \
+		$(PYTHON) compute_rates_misfit.py --config $$cfg || exit $$?; \
+	done
+
 matrix-summary:
 	$(PYTHON) matrix_summary.py --runs-dir $(MATRIX_RUNS_DIR) --output-dir $(MATRIX_SUMMARY_DIR)
 
 run-matrix-with-summary: run-matrix matrix-summary
 
 run-matrix-smoke-with-summary: run-matrix-smoke matrix-summary
+
+run-matrix-maps-with-summary:
+	@$(MAKE) run-matrix-maps
+	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=runs/matrix_maps MATRIX_SUMMARY_DIR=runs/matrix_maps/summary
 
 quick-plot:
 	$(PYTHON) quick_plot.py \

@@ -129,6 +129,12 @@ Fast matrix sanity pass (forces smoke grid):
 make run-matrix-smoke
 ```
 
+Map-producing matrix runs (requires GMT datasets):
+```bash
+export DATASETS_DIR=/path/to/datasets
+make run-matrix-maps
+```
+
 Batch matrix summary tables/plots from `runs/matrix/*`:
 ```bash
 make matrix-summary
@@ -137,6 +143,12 @@ make matrix-summary
 One-shot run + summary:
 ```bash
 make run-matrix-smoke-with-summary
+```
+
+One-shot map run + summary:
+```bash
+export DATASETS_DIR=/path/to/datasets
+make run-matrix-maps-with-summary
 ```
 
 Manual quick plot (no GMT) from existing files:
