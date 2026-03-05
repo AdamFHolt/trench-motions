@@ -2,7 +2,7 @@
 
 import matplotlib
 matplotlib.use('Agg')
-import scipy, math, os, numpy as np
+import os, numpy as np
 import subprocess, sys
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -275,12 +275,6 @@ for k in range(0,1):
 
 		if num_sign_matches > num_sign_matches_max:
 			num_sign_matches_max = num_sign_matches;
-			signs_lith_visc = np.log10(visc_lith);
-			signs_asthen_visc = np.log10(visc_asthen);
-			signs_yield_stress = yield_sigma/1e6;
-			signs_pre = pre;
-			signs_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
-			signs_separated = np.concatenate((latlon,stored_sign_vals), axis=1)
 
 print("------------")
 print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
@@ -303,27 +297,21 @@ else:
 
 if formulation == 1:  # viscous bending
 	plot_name=''.join(['plots/new/linear/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending.png'])
-	signs_name=''.join(['predictions/new/linear/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
 	rms_name=''.join(['predictions/new/linear/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['plots/new/linear/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.plastic_bending.png'])
-	signs_name=''.join(['predictions/new/linear/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
 	rms_name=''.join(['predictions/new/linear/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3: # just slab pull (with prefactor)
 	plot_name=''.join(['plots/new/linear/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.just-slab-pull.png'])
-	signs_name=''.join(['predictions/new/linear/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
 	rms_name=''.join(['predictions/new/linear/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
 elif formulation == 4: # power law, viscous bending
 	plot_name=''.join(['plots/new/powerlaw/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_viscous_bending.png'])
-	signs_name=''.join(['predictions/new/powerlaw/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_viscous_bending'])
 	rms_name=''.join(['predictions/new/powerlaw/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_viscous_bending'])
 elif formulation == 5: # power law, plastic bending
 	plot_name=''.join(['plots/new/powerlaw/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_plastic-bending.png'])   
-	signs_name=''.join(['predictions/new/powerlaw/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_plastic_bending'])
 	rms_name=''.join(['predictions/new/powerlaw/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_plastic_bending'])
 elif formulation == 6: # power law, just slab pull (with prefactor)
 	plot_name=''.join(['plots/new/powerlaw/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_just-slab-pull.png'])
-	signs_name=''.join(['predictions/new/powerlaw/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])
 	rms_name=''.join(['predictions/new/powerlaw/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])	
 
 ensure_parent_dir(plot_name)
@@ -350,8 +338,8 @@ if skip_map:
 			'--output', quick_plot_name,
 			'--title', 'Single-run quick check ({})'.format(vt_ref)
 		])
-	except subprocess.CalledProcessError:
-		print("warning: quick plot generation failed")
+	except subprocess.CalledProcessError as exc:
+		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
 else:
 	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])
 print("output: %s" % plot_name)

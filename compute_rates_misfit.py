@@ -2,7 +2,7 @@
 
 import matplotlib
 matplotlib.use('Agg')
-import scipy, os, numpy as np
+import os, numpy as np
 import subprocess, sys
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -416,8 +416,8 @@ if skip_map:
 			'--output', quick_plot_name,
 			'--title', 'RMS quick check ({})'.format(vt_ref)
 		])
-	except subprocess.CalledProcessError:
-		print("warning: quick plot generation failed")
+	except subprocess.CalledProcessError as exc:
+		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
 else:
 	FNULL = open(os.devnull, 'w')
 	print("plotting map")

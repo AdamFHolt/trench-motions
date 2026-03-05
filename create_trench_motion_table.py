@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import scipy, math, os, numpy as np
+import numpy as np
 import sys
 
 USAGE = """Usage:
@@ -40,5 +40,4 @@ for i in range(0,len(hs3)):
 
 
 np.savetxt('data/vts_hs3-nnr-sa.txt',data,fmt='%.4f')
-
 

@@ -142,7 +142,6 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 				if abs(val) < misfit:
 					misfit = abs(val);
 					vsp = trial_vsp;
-					composite_visc_sp_pref = composite_visc_sp
 
 			if abs(misfit) < abs(0.0005*vc):
 				break;
