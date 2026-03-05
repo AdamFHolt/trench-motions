@@ -17,7 +17,7 @@ SINGLE_PSP_FACTOR ?= 0.25
 SINGLE_ASTHEN_VISC ?= 1e21
 SINGLE_LITH_VISC ?= 1e22
 
-.PHONY: smoke single-smoke
+.PHONY: smoke single-smoke test
 smoke:
 	$(PYTHON) compute_rates_misfit.py \
 		$(SMOKE_REF) \
@@ -40,3 +40,6 @@ single-smoke:
 		$(SINGLE_ASTHEN_VISC) \
 		$(SINGLE_LITH_VISC) \
 		--skip-map
+
+test:
+	$(PYTHON) -m unittest discover -s tests -v
