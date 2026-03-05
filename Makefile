@@ -25,17 +25,17 @@ QUICK_TITLE ?= Manual quick check
 
 MISFIT_CONFIG ?= configs/misfit_smoke.yaml
 SINGLE_CONFIG ?= configs/single_smoke.yaml
-SCIENCE_CONFIGS ?= \
-	configs/science/linear_hs3.yaml \
-	configs/science/linear_nnr.yaml \
-	configs/science/linear_sa.yaml \
-	configs/science/powerlaw_hs3.yaml \
-	configs/science/powerlaw_nnr.yaml \
-	configs/science/powerlaw_sa.yaml
-SCIENCE_RUNS_DIR ?= runs/science
-SCIENCE_SUMMARY_DIR ?= runs/science/summary
+MATRIX_CONFIGS ?= \
+	configs/matrix/linear_hs3.yaml \
+	configs/matrix/linear_nnr.yaml \
+	configs/matrix/linear_sa.yaml \
+	configs/matrix/powerlaw_hs3.yaml \
+	configs/matrix/powerlaw_nnr.yaml \
+	configs/matrix/powerlaw_sa.yaml
+MATRIX_RUNS_DIR ?= runs/matrix
+MATRIX_SUMMARY_DIR ?= runs/matrix/summary
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-science-matrix run-science-matrix-smoke science-summary run-science-matrix-with-summary run-science-matrix-smoke-with-summary quick-plot test
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary quick-plot test
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -72,24 +72,24 @@ smoke-config:
 single-smoke-config:
 	$(PYTHON) compute_rates_single.py --config $(SINGLE_CONFIG)
 
-run-science-matrix:
-	@for cfg in $(SCIENCE_CONFIGS); do \
-		echo "[science] $$cfg"; \
+run-matrix:
+	@for cfg in $(MATRIX_CONFIGS); do \
+		echo "[matrix] $$cfg"; \
 		$(PYTHON) compute_rates_misfit.py --config $$cfg || exit $$?; \
 	done
 
-run-science-matrix-smoke:
-	@for cfg in $(SCIENCE_CONFIGS); do \
-		echo "[science-smoke] $$cfg"; \
+run-matrix-smoke:
+	@for cfg in $(MATRIX_CONFIGS); do \
+		echo "[matrix-smoke] $$cfg"; \
 		$(PYTHON) compute_rates_misfit.py --config $$cfg --smoke || exit $$?; \
 	done
 
-science-summary:
-	$(PYTHON) science_summary.py --runs-dir $(SCIENCE_RUNS_DIR) --output-dir $(SCIENCE_SUMMARY_DIR)
+matrix-summary:
+	$(PYTHON) matrix_summary.py --runs-dir $(MATRIX_RUNS_DIR) --output-dir $(MATRIX_SUMMARY_DIR)
 
-run-science-matrix-with-summary: run-science-matrix science-summary
+run-matrix-with-summary: run-matrix matrix-summary
 
-run-science-matrix-smoke-with-summary: run-science-matrix-smoke science-summary
+run-matrix-smoke-with-summary: run-matrix-smoke matrix-summary
 
 quick-plot:
 	$(PYTHON) quick_plot.py \

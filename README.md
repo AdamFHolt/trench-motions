@@ -119,24 +119,24 @@ Equivalent via Makefile:
 make single-smoke-config
 ```
 
-Science matrix runs (config-driven):
+Matrix runs (config-driven):
 ```bash
-make run-science-matrix
+make run-matrix
 ```
 
 Fast matrix sanity pass (forces smoke grid):
 ```bash
-make run-science-matrix-smoke
+make run-matrix-smoke
 ```
 
-Batch science summary tables/plots from `runs/science/*`:
+Batch matrix summary tables/plots from `runs/matrix/*`:
 ```bash
-make science-summary
+make matrix-summary
 ```
 
 One-shot run + summary:
 ```bash
-make run-science-matrix-smoke-with-summary
+make run-matrix-smoke-with-summary
 ```
 
 Manual quick plot (no GMT) from existing files:

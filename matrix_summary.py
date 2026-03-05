@@ -107,9 +107,9 @@ def plot_metric_bar(rows, metric_key, ylabel, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Summarize science run outputs into tables and plots.')
-    parser.add_argument('--runs-dir', default='runs/science', help='Root directory containing science run outputs.')
-    parser.add_argument('--output-dir', default='runs/science/summary', help='Directory for summary CSV/plots.')
+    parser = argparse.ArgumentParser(description='Summarize matrix run outputs into tables and plots.')
+    parser.add_argument('--runs-dir', default='runs/matrix', help='Root directory containing matrix run outputs.')
+    parser.add_argument('--output-dir', default='runs/matrix/summary', help='Directory for summary CSV/plots.')
     parser.add_argument('--tol', type=float, default=0.1, help='Coordinate rounding tolerance in degrees.')
     parser.add_argument('--neutral', type=float, default=0.3, help='Neutral sign threshold in cm/yr.')
     args = parser.parse_args()
@@ -119,7 +119,7 @@ def main():
 
     pred_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', '*', 'predictions', 'new', '*', 'rms_*.txt')))
     if not pred_files:
-        raise SystemExit('No science prediction files found under {}'.format(args.runs_dir))
+        raise SystemExit('No matrix prediction files found under {}'.format(args.runs_dir))
 
     rows = []
     for pred_path in pred_files:
@@ -146,7 +146,7 @@ def main():
 
     rows.sort(key=lambda r: (r['suite'], r['vt_ref']))
 
-    csv_path = os.path.join(args.output_dir, 'science_summary.csv')
+    csv_path = os.path.join(args.output_dir, 'matrix_summary.csv')
     fields = [
         'suite',
         'vt_ref',

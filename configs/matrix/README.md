@@ -1,6 +1,6 @@
-# Science Config Matrix
+# Config Matrix
 
-This folder defines reproducible misfit-sweep runs for core science comparisons.
+This folder defines reproducible misfit-sweep runs for core run comparisons.
 
 Matrix dimensions currently included:
 - Reference frame (`vt_ref`): `hs3`, `nnr`, `sa`
@@ -15,4 +15,4 @@ Common settings:
 - `include_ridge_push: 1`
 - `skip_map: true` (use quick plots; avoids GMT dependency)
 
-Outputs are routed via `out_prefix` into `runs/science/...`.
+Outputs are routed via `out_prefix` into `runs/matrix/...`.
