@@ -34,6 +34,13 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 ## Running
 From the repository root.
 
+Show CLI help:
+```bash
+python3 compute_rates_misfit.py --help
+python3 compute_rates_single.py --help
+python3 create_trench_motion_table.py --help
+```
+
 Example misfit sweep:
 ```bash
 python3 compute_rates_misfit.py sa 4 1 23.5e6 1e-13 0.25 1
@@ -63,6 +70,16 @@ Equivalent via Makefile:
 ```bash
 make single-smoke
 ```
+
+## Argument Reference
+- `compute_rates_misfit.py` positional args:
+  `vt_ref formulation include_DP DP_ref trans_strain_rate PSP_slab_pull_factor include_ridge_push`
+- `compute_rates_misfit.py` optional flags:
+  `--smoke --skip-map`
+- `compute_rates_single.py` positional args:
+  `vt_ref formulation include_DP DP_ref trans_strain_rate PSP_slab_pull_factor asthen_visc lith_visc`
+- `compute_rates_single.py` optional flags:
+  `--skip-map`
 
 ## GMT datasets for map plotting
 `plot_trench_motions.sh` no longer uses a hardcoded absolute path.

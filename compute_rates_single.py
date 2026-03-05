@@ -17,7 +17,37 @@ def ensure_parent_dir(path):
 		os.makedirs(parent)
 
 
-extra_args = set(sys.argv[9:])
+USAGE = """Usage:
+  python3 compute_rates_single.py <vt_ref> <formulation> <include_DP> <DP_ref> <trans_strain_rate> <PSP_slab_pull_factor> <asthen_visc> <lith_visc> [--skip-map]
+
+Arguments:
+  vt_ref                hs3 | nnr | sa
+  formulation           integer model id
+  include_DP            0 | 1
+  DP_ref                float (Pa)
+  trans_strain_rate     float (s^-1)
+  PSP_slab_pull_factor  float
+  asthen_visc           float (Pa.s)
+  lith_visc             float (Pa.s)
+
+Optional flags:
+  --skip-map  Skip GMT map plotting subprocess call.
+"""
+
+
+raw_args = sys.argv[1:]
+if '--help' in raw_args or '-h' in raw_args:
+	print(USAGE)
+	sys.exit(0)
+if len(raw_args) < 8:
+	print(USAGE)
+	sys.exit(2)
+if len(raw_args) > 8 and any(not a.startswith('--') for a in raw_args[8:]):
+	print(USAGE)
+	sys.exit(2)
+
+main_args = raw_args[:8]
+extra_args = set(raw_args[8:])
 valid_extra_args = set(['--skip-map'])
 unknown_extra_args = extra_args - valid_extra_args
 if len(unknown_extra_args) > 0:
@@ -27,14 +57,22 @@ if len(unknown_extra_args) > 0:
 skip_map = '--skip-map' in extra_args
 
 # vt data to compare
-vt_ref=str(sys.argv[1])    				# hs3, nnr, sa
-formulation=int(sys.argv[2])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
-include_DP=int(sys.argv[3])				# 1 = include DP force, 0 = do not
-DP_ref=float(sys.argv[4]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-trans_strain_rate=float(sys.argv[5]) 	# typical value: 1e-13 s-1
-PSP_slab_pull_factor=float(sys.argv[6]) 	
-asthen_visc = float(sys.argv[7])
-lith_visc = float(sys.argv[8])
+vt_ref=str(main_args[0])    				# hs3, nnr, sa
+formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
+include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
+DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
+trans_strain_rate=float(main_args[4]) 	# typical value: 1e-13 s-1
+PSP_slab_pull_factor=float(main_args[5]) 	
+asthen_visc = float(main_args[6])
+lith_visc = float(main_args[7])
+if vt_ref not in ['hs3', 'nnr', 'sa']:
+	print("Invalid vt_ref: %s" % vt_ref)
+	print(USAGE)
+	sys.exit(2)
+if include_DP not in [0, 1]:
+	print("include_DP must be 0 or 1")
+	print(USAGE)
+	sys.exit(2)
 composite = 0
 
 
