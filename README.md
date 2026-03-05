@@ -13,12 +13,16 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 - Active entrypoints:
   - `compute_rates_misfit.py`
   - `compute_rates_single.py`
+  - `quick_plot.py`
   - `create_trench_motion_table.py`
   - `plot_trench_motions.sh`
 - Legacy/deprecated:
-  - `compute_rate_plots.py`
-  - `compute_rate_plots_vtvp.py`
-  - `old/` (historical versions)
+  - `legacy/compute_rate_plots.py`
+  - `legacy/compute_rate_plots_vtvp.py`
+  - `legacy/many_runs_linear-viscosity.sh`
+  - `legacy/many_runs_nonlinear-viscosity.sh`
+  - `legacy/old/` (historical versions)
+  - `legacy/misc/` (older analytical notebooks/scripts)
 
 ## Data and outputs
 - Inputs: `data/` and `data/vt/`.
