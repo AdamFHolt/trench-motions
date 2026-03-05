@@ -26,9 +26,9 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 
 ## Data and outputs
 - Inputs: `data/` and `data/vt/`.
-- Model outputs: `predictions/`.
-- Figure outputs: `plots/`.
-- Temporary text outputs: `tmp/` (created automatically by active scripts).
+- Active run outputs: `runs/` (recommended via `--out-prefix`/configs).
+- Archived historical generated outputs: `archive/generated/`.
+- Archived reference/historical small files: `archive/reference/`.
 
 ## Runtime notes
 - Active scripts are Python 3 compatible.

@@ -5,3 +5,4 @@ __pycache__/
 tmp/
 .venv/
 runs/
+archive/generated/

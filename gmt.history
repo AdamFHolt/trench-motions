@@ -1,9 +1,0 @@
-# GMT 6 Session common arguments shelf
-BEGIN GMT 6.0.0
-B	a2:misfit  [cm/yr]:
-J	m
-Jm	m0.018i
-R	0/360/-70/70
-Y	-9.6
-@L	10
-END
