@@ -25,8 +25,15 @@ QUICK_TITLE ?= Manual quick check
 
 MISFIT_CONFIG ?= configs/misfit_smoke.yaml
 SINGLE_CONFIG ?= configs/single_smoke.yaml
+SCIENCE_CONFIGS ?= \
+	configs/science/linear_hs3.yaml \
+	configs/science/linear_nnr.yaml \
+	configs/science/linear_sa.yaml \
+	configs/science/powerlaw_hs3.yaml \
+	configs/science/powerlaw_nnr.yaml \
+	configs/science/powerlaw_sa.yaml
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config quick-plot test
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-science-matrix run-science-matrix-smoke quick-plot test
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -62,6 +69,18 @@ smoke-config:
 
 single-smoke-config:
 	$(PYTHON) compute_rates_single.py --config $(SINGLE_CONFIG)
+
+run-science-matrix:
+	@for cfg in $(SCIENCE_CONFIGS); do \
+		echo "[science] $$cfg"; \
+		$(PYTHON) compute_rates_misfit.py --config $$cfg || exit $$?; \
+	done
+
+run-science-matrix-smoke:
+	@for cfg in $(SCIENCE_CONFIGS); do \
+		echo "[science-smoke] $$cfg"; \
+		$(PYTHON) compute_rates_misfit.py --config $$cfg --smoke || exit $$?; \
+	done
 
 quick-plot:
 	$(PYTHON) quick_plot.py \

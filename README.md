@@ -119,6 +119,16 @@ Equivalent via Makefile:
 make single-smoke-config
 ```
 
+Science matrix runs (config-driven):
+```bash
+make run-science-matrix
+```
+
+Fast matrix sanity pass (forces smoke grid):
+```bash
+make run-science-matrix-smoke
+```
+
 Manual quick plot (no GMT) from existing files:
 ```bash
 make quick-plot
