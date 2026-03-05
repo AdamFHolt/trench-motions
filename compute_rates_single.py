@@ -340,6 +340,18 @@ np.savetxt('tmp/rms_separated.txt', vsps, fmt='%.4f')
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 if skip_map:
 	print("skipping map plotting (--skip-map)")
+	quick_plot_name = ''.join([rms_name, '.quick.png'])
+	try:
+		subprocess.check_call([
+			sys.executable,
+			'quick_plot.py',
+			'--predicted', rms_txt_name,
+			'--observed', os.path.join('data', 'vt', vt_observed),
+			'--output', quick_plot_name,
+			'--title', 'Single-run quick check ({})'.format(vt_ref)
+		])
+	except subprocess.CalledProcessError:
+		print("warning: quick plot generation failed")
 else:
 	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])
 print("output: %s" % plot_name)

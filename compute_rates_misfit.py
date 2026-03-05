@@ -406,6 +406,18 @@ np.savetxt('tmp/rms_separated.txt', rms_separated, fmt='%.4f')
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 if skip_map:
 	print("skipping map plotting (--skip-map)")
+	quick_plot_name = ''.join([rms_name, '.quick.png'])
+	try:
+		subprocess.check_call([
+			sys.executable,
+			'quick_plot.py',
+			'--predicted', rms_txt_name,
+			'--observed', os.path.join('data', 'vt', vt_observed),
+			'--output', quick_plot_name,
+			'--title', 'RMS quick check ({})'.format(vt_ref)
+		])
+	except subprocess.CalledProcessError:
+		print("warning: quick plot generation failed")
 else:
 	FNULL = open(os.devnull, 'w')
 	print("plotting map")

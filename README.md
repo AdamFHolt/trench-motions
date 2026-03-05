@@ -71,6 +71,16 @@ Equivalent via Makefile:
 make single-smoke
 ```
 
+Manual quick plot (no GMT) from existing files:
+```bash
+make quick-plot
+```
+
+Or explicitly:
+```bash
+python3 quick_plot.py --predicted <predicted_txt> --observed data/vt/tnew.sa.dat --output <output_png>
+```
+
 ## Argument Reference
 - `compute_rates_misfit.py` positional args:
   `vt_ref formulation include_DP DP_ref trans_strain_rate PSP_slab_pull_factor include_ridge_push`

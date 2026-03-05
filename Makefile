@@ -17,7 +17,12 @@ SINGLE_PSP_FACTOR ?= 0.25
 SINGLE_ASTHEN_VISC ?= 1e21
 SINGLE_LITH_VISC ?= 1e22
 
-.PHONY: smoke single-smoke test
+QUICK_PREDICTED ?= predictions/new/linear/rms_samodel.DP2.35e+07MPa.l20.0_a10e22.0.viscous_bending.txt
+QUICK_OBSERVED ?= data/vt/tnew.sa.dat
+QUICK_OUTPUT ?= plots/new/quick/quick_check.png
+QUICK_TITLE ?= Manual quick check
+
+.PHONY: smoke single-smoke quick-plot test
 smoke:
 	$(PYTHON) compute_rates_misfit.py \
 		$(SMOKE_REF) \
@@ -40,6 +45,13 @@ single-smoke:
 		$(SINGLE_ASTHEN_VISC) \
 		$(SINGLE_LITH_VISC) \
 		--skip-map
+
+quick-plot:
+	$(PYTHON) quick_plot.py \
+		--predicted $(QUICK_PREDICTED) \
+		--observed $(QUICK_OBSERVED) \
+		--output $(QUICK_OUTPUT) \
+		--title "$(QUICK_TITLE)"
 
 test:
 	$(PYTHON) -m unittest discover -s tests -v
