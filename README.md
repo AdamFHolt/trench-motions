@@ -27,7 +27,7 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 - Temporary text outputs: `tmp/` (created automatically by active scripts).
 
 ## Runtime notes
-- Code uses Python 2 syntax (`print ...`) and was developed in a legacy environment.
+- Active scripts are Python 3 compatible.
 - Python dependencies: `numpy`, `scipy`, `matplotlib`.
 - Map plotting dependencies: GMT tools (`gmtset`, `makecpt`, `psxy`, `grdview`, etc.), `eps2eps`, and ImageMagick `convert`.
 
@@ -36,12 +36,12 @@ From the repository root.
 
 Example misfit sweep:
 ```bash
-python compute_rates_misfit.py sa 4 1 23.5e6 1e-13 0.25 1
+python3 compute_rates_misfit.py sa 4 1 23.5e6 1e-13 0.25 1
 ```
 
 Example single run:
 ```bash
-python compute_rates_single.py sa 4 1 23.5e6 1e-13 0.25 1e21 1e22
+python3 compute_rates_single.py sa 4 1 23.5e6 1e-13 0.25 1e21 1e22
 ```
 
 ## GMT datasets for map plotting

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import matplotlib
 matplotlib.use('Agg')
@@ -201,8 +201,8 @@ for k in range(0,len(lith_viscs)):
 					vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
 						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,1,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
 				else:
-					print "trying to set include_DP=0. Can't do that - just set DP_ref = 0..."
-					exit()
+					print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
+					sys.exit(1)
 
 		# non power-law			
 		else:
@@ -210,8 +210,8 @@ for k in range(0,len(lith_viscs)):
 				vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
 					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,1,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 			else:
-				print "trying to set include_DP=0. Can't do that - just set DP_ref = 0..."
-				exit()
+				print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
+				sys.exit(1)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
@@ -246,8 +246,8 @@ for k in range(0,len(lith_viscs)):
 			signs_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
 			signs_separated = np.concatenate((latlon,stored_sign_vals), axis=1)
 
-print "------------"
-print "Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n)
+print("------------")
+print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
 
 fig = plt.figure()
 
@@ -348,7 +348,7 @@ np.savetxt('tmp/rms_separated.txt', rms_separated, fmt='%.4f')
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 FNULL = open(os.devnull, 'w')
-print "plotting map"
+print("plotting map")
 subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,'tmp/signs_separated','0'],stdout=FNULL, stderr=subprocess.STDOUT)
 subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'],stdout=FNULL, stderr=subprocess.STDOUT)
-print "output: %s" % plot_name
+print("output: %s" % plot_name)

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import matplotlib
 matplotlib.use('Agg')
@@ -163,7 +163,7 @@ for i in range(0,n):
 	oceanic_buoy[i] = compute_plate_buoyancy(age[i],1300,1e-6,3e-5,3300); # [kg/m2]
 	if include_ridge_push == 1:
 		ride_push[i] = g * rho0 * alpha * dT * ( 1.0 + ((2.0 * rho0 * alpha * dT)/(np.pi * (rho0 - rhoW))) ) * kappa * (age[i] * ma_to_s); # [N/m]
-		print ride_push[i]
+		print(ride_push[i])
 
 rms_min = 10.0
 num_sign_matches_max = 0
@@ -187,7 +187,7 @@ for k in range(0,1):
 					vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
 						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor[i],PSP_force_transmitted,ride_push[i])
 				else:
-					exit()
+					sys.exit(1)
 					# vsp_estimate[i] = compute_vsp(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],dip[i],oceanic_buoy[i],yield_sigma,trans_strain_rate,n,pre)
 
 		# non power-law			
@@ -196,7 +196,7 @@ for k in range(0,1):
 				vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
 					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push)
 			else:
-				exit()
+				sys.exit(1)
 				# vsp_estimate = compute_vsp(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,dip,oceanic_buoy,yield_sigma,trans_strain_rate,n,pre)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
@@ -232,8 +232,8 @@ for k in range(0,1):
 			signs_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
 			signs_separated = np.concatenate((latlon,stored_sign_vals), axis=1)
 
-print "------------"
-print "Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n)
+print("------------")
+print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
 
 
 if include_DP == 0:
@@ -290,4 +290,4 @@ np.savetxt('tmp/rms_separated.txt', vsps, fmt='%.4f')
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 FNULL = open(os.devnull, 'w')
 subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])#,stdout=FNULL, stderr=subprocess.STDOUT)
-print "output: %s" % plot_name
+print("output: %s" % plot_name)
