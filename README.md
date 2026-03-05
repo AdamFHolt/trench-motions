@@ -54,6 +54,16 @@ Example single run:
 python3 compute_rates_single.py sa 4 1 23.5e6 1e-13 0.25 1e21 1e22
 ```
 
+Single-run smoke (skip GMT map plotting):
+```bash
+python3 compute_rates_single.py sa 1 1 23.5e6 1e-13 0.25 1e21 1e22 --skip-map
+```
+
+Equivalent via Makefile:
+```bash
+make single-smoke
+```
+
 ## GMT datasets for map plotting
 `plot_trench_motions.sh` no longer uses a hardcoded absolute path.
 

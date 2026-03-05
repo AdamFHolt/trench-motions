@@ -16,6 +16,16 @@ def ensure_parent_dir(path):
 	if parent and not os.path.isdir(parent):
 		os.makedirs(parent)
 
+
+extra_args = set(sys.argv[9:])
+valid_extra_args = set(['--skip-map'])
+unknown_extra_args = extra_args - valid_extra_args
+if len(unknown_extra_args) > 0:
+	print("Unknown arguments: %s" % ", ".join(sorted(unknown_extra_args)))
+	print("Supported optional arguments: --skip-map")
+	sys.exit(2)
+skip_map = '--skip-map' in extra_args
+
 # vt data to compare
 vt_ref=str(sys.argv[1])    				# hs3, nnr, sa
 formulation=int(sys.argv[2])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
@@ -122,6 +132,7 @@ Rmin=np.zeros((num,1));			age=np.zeros((num,1))
 vt_actual=np.zeros((num,1));	slabL=np.zeros((num,1))
 latlon=np.zeros((num,2));		azims=np.zeros((num,1))
 w = np.zeros((num,1));			slabL_buoy=np.zeros((num,1))
+Lop=np.zeros((num,1));
 external_force_factor = np.zeros((num,1));	ride_push = np.zeros((num,1))
 
 n = 0
@@ -132,6 +143,7 @@ for i in range(0,data.shape[0]):
 		latlon[n,0]=data_vt[i,0]; latlon[n,1]=data_vt[i,1];  
 		azims[n,0] = data[i,4]
 		Lsp[n,0] = data[i,26] * 1e3
+		Lop[n,0] = data[i,27] * 1e3
 		dip[n,0] = data[i,6]
 		vc[n,0] = (data[i,9] / 10.0) * vel_converter
 		Rmin[n,0] = data[i,13] * 1e3
@@ -163,7 +175,6 @@ for i in range(0,n):
 	oceanic_buoy[i] = compute_plate_buoyancy(age[i],1300,1e-6,3e-5,3300); # [kg/m2]
 	if include_ridge_push == 1:
 		ride_push[i] = g * rho0 * alpha * dT * ( 1.0 + ((2.0 * rho0 * alpha * dT)/(np.pi * (rho0 - rhoW))) ) * kappa * (age[i] * ma_to_s); # [N/m]
-		print(ride_push[i])
 
 rms_min = 10.0
 num_sign_matches_max = 0
@@ -185,7 +196,7 @@ for k in range(0,1):
 			for i in range(0,len(vt_actual)):
 				if include_DP == 1:
 					vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
-						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor[i],PSP_force_transmitted,ride_push[i])
+						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
 				else:
 					sys.exit(1)
 					# vsp_estimate[i] = compute_vsp(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],dip[i],oceanic_buoy[i],yield_sigma,trans_strain_rate,n,pre)
@@ -194,7 +205,7 @@ for k in range(0,1):
 		else:
 			if include_DP == 1:
 				vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push)
+					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 			else:
 				sys.exit(1)
 				# vsp_estimate = compute_vsp(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,dip,oceanic_buoy,yield_sigma,trans_strain_rate,n,pre)
@@ -202,15 +213,16 @@ for k in range(0,1):
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
 		for i in range(0,n):
-			rms_sum = rms_sum + (vt_estimate[i] - vt_actual[i])**2;
-			stored_rms_vals[i] = np.abs(vt_estimate[i] - vt_actual[i])
+			diff = float(vt_estimate[i,0] - vt_actual[i,0])
+			rms_sum = rms_sum + diff**2;
+			stored_rms_vals[i] = np.abs(diff)
 			if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
 				num_sign_matches = num_sign_matches + 1
 				stored_sign_vals[i] = 1
 			elif (vt_estimate[i] > -0.5 and vt_estimate[i] <= 0.5) and (vt_actual[i] > -0.5 and vt_actual[i] <= 0.5):
 				num_sign_matches = num_sign_matches + 1
 				stored_sign_vals[i] = 1
-		rms_act = np.sqrt(rms_sum / float(n))
+		rms_act = float(np.sqrt(rms_sum / float(n)))
 
 
 		if rms_act < rms_min:
@@ -288,6 +300,8 @@ np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')
 np.savetxt('tmp/rms_separated.txt', vsps, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
-FNULL = open(os.devnull, 'w')
-subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])#,stdout=FNULL, stderr=subprocess.STDOUT)
+if skip_map:
+	print("skipping map plotting (--skip-map)")
+else:
+	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,'tmp/rms_separated','1'])
 print("output: %s" % plot_name)

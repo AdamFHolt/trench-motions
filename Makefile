@@ -8,7 +8,16 @@ SMOKE_TRANS_STRAIN ?= 1e-13
 SMOKE_PSP_FACTOR ?= 0.25
 SMOKE_INCLUDE_RP ?= 0
 
-.PHONY: smoke
+SINGLE_REF ?= sa
+SINGLE_FORMULATION ?= 1
+SINGLE_INCLUDE_DP ?= 1
+SINGLE_DP_REF ?= 23.5e6
+SINGLE_TRANS_STRAIN ?= 1e-13
+SINGLE_PSP_FACTOR ?= 0.25
+SINGLE_ASTHEN_VISC ?= 1e21
+SINGLE_LITH_VISC ?= 1e22
+
+.PHONY: smoke single-smoke
 smoke:
 	$(PYTHON) compute_rates_misfit.py \
 		$(SMOKE_REF) \
@@ -19,3 +28,15 @@ smoke:
 		$(SMOKE_PSP_FACTOR) \
 		$(SMOKE_INCLUDE_RP) \
 		--smoke --skip-map
+
+single-smoke:
+	$(PYTHON) compute_rates_single.py \
+		$(SINGLE_REF) \
+		$(SINGLE_FORMULATION) \
+		$(SINGLE_INCLUDE_DP) \
+		$(SINGLE_DP_REF) \
+		$(SINGLE_TRANS_STRAIN) \
+		$(SINGLE_PSP_FACTOR) \
+		$(SINGLE_ASTHEN_VISC) \
+		$(SINGLE_LITH_VISC) \
+		--skip-map
