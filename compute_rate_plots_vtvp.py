@@ -1,4 +1,12 @@
 #!/usr/bin/python
+import sys
+
+sys.stderr.write(
+	"compute_rate_plots_vtvp.py is legacy and currently disabled.\n"
+	"Reason: it depends on compute_vsp(), which is not present in functions.py.\n"
+	"Use compute_rates_misfit.py / compute_rates_single.py for active workflows.\n"
+)
+sys.exit(1)
 
 import scipy, math, os, numpy as np
 import subprocess, pygplates
@@ -339,5 +347,4 @@ elif formulation == 5:
     plot_name=''.join(['plots/ratioVtVp_',str(vt_ref),'model_',depths_string,'_YieldStress',str(yield_stress/1e9),'GPa_AsthVisc',str(visc_asthen),'_Trans',str(trans_strain_rate),'.plastic-bending_and_power-law.png'])
 
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
-
 

@@ -1,4 +1,12 @@
 #!/usr/bin/python
+import sys
+
+sys.stderr.write(
+	"compute_rate_plots.py is legacy and currently disabled.\n"
+	"Reason: it depends on compute_vsp(), which is not present in functions.py.\n"
+	"Use compute_rates_misfit.py / compute_rates_single.py for active workflows.\n"
+)
+sys.exit(1)
 
 import scipy, math, os, numpy as np
 import subprocess, pygplates
@@ -335,5 +343,4 @@ elif formulation == 7:
     plot_name=''.join(['plots/rates_',str(vt_ref),'model_',depths_string,'_SPpre',str(pre),'_RefVisc',str(visc_asthen),'_Vtrans',str(v_trans),'.other-power-law.png'])
 
 plt.savefig(plot_name, bbox_inches='tight',dpi=400)
-
 

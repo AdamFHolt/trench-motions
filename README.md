@@ -9,6 +9,17 @@ This repository contains analytical subduction/trench-motion modeling scripts an
 - `create_trench_motion_table.py`: rebuilds `data/vts_hs3-nnr-sa.txt` from `data/vt/*.dat`.
 - `plot_trench_motions.sh`: GMT-based map plotting for observed vs predicted trench motions.
 
+## Active vs legacy
+- Active entrypoints:
+  - `compute_rates_misfit.py`
+  - `compute_rates_single.py`
+  - `create_trench_motion_table.py`
+  - `plot_trench_motions.sh`
+- Legacy/deprecated:
+  - `compute_rate_plots.py`
+  - `compute_rate_plots_vtvp.py`
+  - `old/` (historical versions)
+
 ## Data and outputs
 - Inputs: `data/` and `data/vt/`.
 - Model outputs: `predictions/`.
