@@ -26,6 +26,12 @@ class TestCliSmoke(unittest.TestCase):
     def test_make_single_smoke(self):
         self.run_cmd(["make", "single-smoke"])
 
+    def test_make_smoke_config(self):
+        self.run_cmd(["make", "smoke-config"])
+
+    def test_make_single_smoke_config(self):
+        self.run_cmd(["make", "single-smoke-config"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -23,7 +23,10 @@ QUICK_OBSERVED ?= data/vt/tnew.sa.dat
 QUICK_OUTPUT ?= plots/new/quick/quick_check.png
 QUICK_TITLE ?= Manual quick check
 
-.PHONY: venv install smoke single-smoke quick-plot test
+MISFIT_CONFIG ?= configs/misfit_smoke.yaml
+SINGLE_CONFIG ?= configs/single_smoke.yaml
+
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config quick-plot test
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -53,6 +56,12 @@ single-smoke:
 		$(SINGLE_ASTHEN_VISC) \
 		$(SINGLE_LITH_VISC) \
 		--skip-map
+
+smoke-config:
+	$(PYTHON) compute_rates_misfit.py --config $(MISFIT_CONFIG)
+
+single-smoke-config:
+	$(PYTHON) compute_rates_single.py --config $(SINGLE_CONFIG)
 
 quick-plot:
 	$(PYTHON) quick_plot.py \

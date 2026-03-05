@@ -75,6 +75,16 @@ Equivalent via Makefile:
 make smoke
 ```
 
+Config-driven smoke:
+```bash
+python3 compute_rates_misfit.py --config configs/misfit_smoke.yaml
+```
+
+Equivalent via Makefile:
+```bash
+make smoke-config
+```
+
 Example single run:
 ```bash
 python3 compute_rates_single.py sa 4 1 23.5e6 1e-13 0.25 1e21 1e22
@@ -95,6 +105,16 @@ Equivalent via Makefile:
 make single-smoke
 ```
 
+Config-driven single smoke:
+```bash
+python3 compute_rates_single.py --config configs/single_smoke.yaml
+```
+
+Equivalent via Makefile:
+```bash
+make single-smoke-config
+```
+
 Manual quick plot (no GMT) from existing files:
 ```bash
 make quick-plot
@@ -109,11 +129,11 @@ python3 quick_plot.py --predicted <predicted_txt> --observed data/vt/tnew.sa.dat
 - `compute_rates_misfit.py` positional args:
   `vt_ref formulation include_DP DP_ref trans_strain_rate PSP_slab_pull_factor include_ridge_push`
 - `compute_rates_misfit.py` optional flags:
-  `--smoke --skip-map --out-prefix <dir>`
+  `--smoke --skip-map --out-prefix <dir> --config <path.yaml>`
 - `compute_rates_single.py` positional args:
   `vt_ref formulation include_DP DP_ref trans_strain_rate PSP_slab_pull_factor asthen_visc lith_visc`
 - `compute_rates_single.py` optional flags:
-  `--skip-map --out-prefix <dir>`
+  `--skip-map --out-prefix <dir> --config <path.yaml>`
 
 ## GMT datasets for map plotting
 `plot_trench_motions.sh` no longer uses a hardcoded absolute path.

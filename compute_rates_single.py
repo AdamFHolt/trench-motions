@@ -6,6 +6,7 @@ import os, numpy as np
 import subprocess, sys
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import yaml
 from functions import compute_plate_buoyancy, compute_plate_isotherm
 from functions import compute_vsp_withDP
 plt.ioff()
@@ -18,7 +19,8 @@ def ensure_parent_dir(path):
 
 
 USAGE = """Usage:
-  python3 compute_rates_single.py <vt_ref> <formulation> <include_DP> <DP_ref> <trans_strain_rate> <PSP_slab_pull_factor> <asthen_visc> <lith_visc> [--skip-map]
+  python3 compute_rates_single.py <vt_ref> <formulation> <include_DP> <DP_ref> <trans_strain_rate> <PSP_slab_pull_factor> <asthen_visc> <lith_visc> [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_single.py --config <path.yaml> [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
@@ -33,6 +35,7 @@ Arguments:
 Optional flags:
   --skip-map  Skip GMT map plotting subprocess call.
   --out-prefix <dir>  Write generated outputs under a custom base directory.
+  --config <path.yaml>  Load arguments from YAML config.
 """
 
 
@@ -40,14 +43,72 @@ raw_args = sys.argv[1:]
 if '--help' in raw_args or '-h' in raw_args:
 	print(USAGE)
 	sys.exit(0)
-if len(raw_args) < 8:
-	print(USAGE)
-	sys.exit(2)
-main_args = raw_args[:8]
-extra_args = raw_args[8:]
 
-skip_map = False
-out_prefix = ''
+cfg = {}
+args_wo_config = list(raw_args)
+if '--config' in args_wo_config:
+	config_ind = args_wo_config.index('--config')
+	if config_ind + 1 >= len(args_wo_config):
+		print("Missing value for --config")
+		print(USAGE)
+		sys.exit(2)
+	config_path = args_wo_config[config_ind + 1]
+	del args_wo_config[config_ind:config_ind + 2]
+	with open(config_path, 'r') as f:
+		cfg = yaml.safe_load(f) or {}
+	if not isinstance(cfg, dict):
+		print("Config must deserialize to a mapping/dictionary")
+		sys.exit(2)
+
+if cfg:
+	if any(not a.startswith('--') for a in args_wo_config):
+		print("Unexpected positional arguments when using --config")
+		print(USAGE)
+		sys.exit(2)
+	missing_keys = [
+		k for k in [
+			'vt_ref',
+			'formulation',
+			'include_DP',
+			'DP_ref',
+			'trans_strain_rate',
+			'PSP_slab_pull_factor',
+			'asthen_visc',
+			'lith_visc',
+		]
+		if k not in cfg
+	]
+	if missing_keys:
+		print("Missing config keys: %s" % ", ".join(missing_keys))
+		sys.exit(2)
+	vt_ref = str(cfg['vt_ref'])
+	formulation = int(cfg['formulation'])
+	include_DP = int(cfg['include_DP'])
+	DP_ref = float(cfg['DP_ref'])
+	trans_strain_rate = float(cfg['trans_strain_rate'])
+	PSP_slab_pull_factor = float(cfg['PSP_slab_pull_factor'])
+	asthen_visc = float(cfg['asthen_visc'])
+	lith_visc = float(cfg['lith_visc'])
+	extra_args = args_wo_config
+	skip_map = bool(cfg.get('skip_map', False))
+	out_prefix = str(cfg.get('out_prefix', ''))
+else:
+	if len(args_wo_config) < 8:
+		print(USAGE)
+		sys.exit(2)
+	main_args = args_wo_config[:8]
+	extra_args = args_wo_config[8:]
+	vt_ref=str(main_args[0])    				# hs3, nnr, sa
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
+	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
+	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
+	trans_strain_rate=float(main_args[4]) 	# typical value: 1e-13 s-1
+	PSP_slab_pull_factor=float(main_args[5]) 	
+	asthen_visc = float(main_args[6])
+	lith_visc = float(main_args[7])
+	skip_map = False
+	out_prefix = ''
+
 i = 0
 while i < len(extra_args):
 	arg = extra_args[i]
@@ -72,15 +133,6 @@ def out_path(relative_path):
 		return os.path.join(out_prefix, relative_path)
 	return relative_path
 
-# vt data to compare
-vt_ref=str(main_args[0])    				# hs3, nnr, sa
-formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
-include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
-DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-trans_strain_rate=float(main_args[4]) 	# typical value: 1e-13 s-1
-PSP_slab_pull_factor=float(main_args[5]) 	
-asthen_visc = float(main_args[6])
-lith_visc = float(main_args[7])
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
 	print(USAGE)
