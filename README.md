@@ -35,9 +35,8 @@ make run-matrix-maps-with-summary
 ## What Is Active
 - `compute_rates_misfit.py`: parameter sweep and best-fit selection.
 - `compute_rates_single.py`: single-parameter model run.
-- `quick_plot.py`: fast non-GMT diagnostic map.
-- `create_trench_motion_table.py`: rebuilds `data/vts_hs3-nnr-sa.txt` from `data/vt/*.dat`.
-- `plot_trench_motions.sh`: GMT map plotting (used only when `--skip-map` is not set).
+- `quick_plot.py`: fast diagnostic observed-vs-predicted check.
+- `plot_trench_motions.py`: map plotting (used when `--skip-map` is not set).
 
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
@@ -53,7 +52,7 @@ make run-matrix-maps-with-summary
 ## Runtime notes
 - Active scripts are Python 3 compatible.
 - Python dependencies: `numpy`, `scipy`, `matplotlib`.
-- Map plotting dependencies: GMT tools (`gmtset`, `makecpt`, `psxy`, `grdview`, etc.), `eps2eps`, and ImageMagick `convert`.
+- Map plotting dependencies: Python packages already in this repo (`numpy`, `scipy`, `matplotlib`).
 
 ## Core Commands
 From repository root.
@@ -79,8 +78,8 @@ python3 compute_rates_misfit.py --help
 python3 compute_rates_single.py --help
 ```
 
-## GMT datasets for map plotting
-`plot_trench_motions.sh` no longer uses a hardcoded absolute path.
+## Datasets for map plotting
+`plot_trench_motions.py` accepts the same dataset layout controls via `DATASETS_DIR`.
 
 Set `DATASETS_DIR` to a dataset root containing:
 - `age/age.3.6.NaN.grd`

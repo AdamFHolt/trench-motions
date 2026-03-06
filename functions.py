@@ -62,7 +62,7 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 		vsp = (1/prefactor) * (pre * (slabD * oceanic_buoy * g)  + ridge_push - \
 			(2.0 * vc * slabL * (visc_asthen/h)) + vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
-	elif formulation == 7: # viscous bending, with h proportional to Lsp
+	elif formulation == 4: # viscous bending, with h proportional to Lsp
 
 		Lsp_ref = 5000.e3; 
 		hsp_ref = 250.e3;
@@ -72,7 +72,7 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) - \
 			(2.0 * vc * slabL * (visc_asthen/hsp_eff)) + vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
-	elif formulation == 8: # viscous bending, with h proportional to Vsp
+	elif formulation == 5: # viscous bending, with h proportional to Vsp
 
 		vsp_ref = 5.0 * vel_converter # 5 cm/yr 
 		hsp_ref = 200.e3; 
@@ -96,7 +96,7 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 				if vsp < 0:
 					break
 
-	elif formulation == 9: # viscous bending, with OP drag
+	elif formulation == 6: # viscous bending, with OP drag
 
 		prefactor =  visc_asthen * ( ((Lsp+Lop)/h) + ((slabD * DP_ref * w)/(visc_asthen_ref * w_ref * vt_ref)) )
 		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) - \

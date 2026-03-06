@@ -15,8 +15,7 @@
   - output naming
   - core function signature usage
 - Consolidated matrix configs:
-  - `configs/matrix.yaml`
-  - `configs/matrix_maps.yaml`
+  - `configs/run_params.yaml`
 - Added shared prep utilities:
   - `workflow_common.py`
   - used by both `compute_rates_misfit.py` and `compute_rates_single.py`

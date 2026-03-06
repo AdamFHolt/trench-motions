@@ -2,8 +2,7 @@ PYTHON ?= python3
 VENV_DIR ?= env
 MAKEFLAGS += --no-print-directory
 
-MATRIX_CONFIG ?= configs/matrix.yaml
-MATRIX_MAP_CONFIG ?= configs/matrix_maps.yaml
+RUN_CONFIG ?= configs/run_params.yaml
 REF_FRAMES ?= hs3 nnr sa
 SUMMARY_SUITES ?= param-sweep
 
@@ -18,13 +17,13 @@ install:
 run-matrix:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/param-sweep || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --skip-map --out-prefix plots/$$ref/param-sweep || exit $$?; \
 	done
 
 run-matrix-maps:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix-maps] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/maps || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/maps || exit $$?; \
 	done
 
 matrix-summary:

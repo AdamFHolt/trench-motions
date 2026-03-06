@@ -28,7 +28,7 @@ Arguments:
 Optional flags:
   --vt-ref <hs3|nnr|sa>  Override vt_ref (mainly for shared configs).
   --smoke     Use a small 3x3 parameter grid for fast checks.
-  --skip-map  Skip GMT map plotting subprocess calls.
+  --skip-map  Skip map plotting subprocess calls.
   --out-prefix <dir>  Write generated outputs under a custom base directory.
   --config <path.yaml>  Load arguments from YAML config.
 """
@@ -84,8 +84,8 @@ else:
 	main_args = args_wo_config[:5]
 	extra_args = args_wo_config[5:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 7 = regular, hSP \propto LSP, 8 = regular, hSP \propto V4SP
-											# 9 = regular, with OP
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, hSP \propto LSP, 5 = regular, hSP \propto VSP
+											# 6 = regular, with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
@@ -131,6 +131,13 @@ def out_path(relative_path):
 		return os.path.join(out_prefix, relative_path)
 	return os.path.join('plots', vt_ref, 'maps', relative_path)
 
+
+def misfit_plot_out_path(filename):
+	if out_prefix and os.path.basename(out_prefix) == 'maps':
+		base_dir = os.path.dirname(out_prefix)
+		return os.path.join(base_dir, 'param-sweep', filename)
+	return out_path(filename)
+
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
 	print(USAGE)
@@ -143,11 +150,7 @@ if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation in [4, 5, 6]:
-	print("formulations 4-6 (power-law) are no longer supported")
-	print(USAGE)
-	sys.exit(2)
-if formulation not in [1, 2, 3, 7, 8, 9]:
+if formulation not in [1, 2, 3, 4, 5, 6]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -182,7 +185,7 @@ asth_visc_min = 17; asth_visc_max = 22
 yield_min = 100e6; 	yield_max = 10000e6;
 pre_min = 0.0; 		pre_max = 1.0;
 
-# DP stuff (SI units), for formulation == 8
+# DP stuff (SI units), used in all active formulations
 visc_asthen_ref =  3e20
 w_ref = 2224e3 * 2 # [m], factor 2 to convert from half width to full width,  (2224km = 20 degrees)
 trenchv_ref = 5.0 * vel_converter # [cm/yr] -> [m/s], positive (as here) = trench retreat
@@ -207,7 +210,7 @@ for i in range(0,len(lith_viscs)):
 	yield_stress[:,i] = yield_stresses[:];
 	pre_values[:,i] = prefactors[:]
 
-data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithTrenchWidths_withInteractions.txt'
+data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.txt'
 data = np.genfromtxt(data_name) # see spreadsheet for column details
 vt_col = get_vt_col(vt_ref)
 data_vt = build_vt_table_from_tnew(data, vt_ref)
@@ -251,8 +254,8 @@ for k in range(0,len(lith_viscs)):
 		yield_sigma = yield_stress[k,j]; 
 		pre = pre_values[k,j]
 
-		# formulation 8 requires per-segment nonlinear solve
-		if formulation == 8:
+		# formulation 5 requires per-segment nonlinear solve
+		if formulation == 5:
 			vsp_estimate=np.zeros((num,1));
 			for i in range(0,len(vt_actual)):
 				vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
@@ -303,7 +306,7 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 if formulation == 2:
 	signs_y_param = signs_yield_stress
 	rms_y_param = rms_yield_stress
-elif formulation in (1, 7, 8, 9):
+elif formulation in (1, 4, 5, 6):
 	signs_y_param = signs_lith_visc
 	rms_y_param = rms_lith_visc
 elif formulation == 3:
@@ -332,19 +335,19 @@ elif formulation == 3: # just slab pull (with prefactor)
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
-elif formulation == 7:  # regular, hSP \propto LSP
+elif formulation == 4:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
-elif formulation == 8:  # regular, hSP \propto VSP
+elif formulation == 5:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-elif formulation == 9:  # regular, with OP drag
+elif formulation == 6:  # regular, with OP drag
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
-plot_name = out_path(plot_name)
+plot_name = misfit_plot_out_path(plot_name)
 signs_name = out_path(signs_name)
 rms_name = out_path(rms_name)
 save_misfit_heatmap(
@@ -393,7 +396,6 @@ if skip_map:
 	except subprocess.CalledProcessError as exc:
 		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
 else:
-	FNULL = open(os.devnull, 'w')
 	print("plotting map")
 	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
 	signs_sep_base = os.path.join(tmp_dir, 'signs_separated')
@@ -401,8 +403,22 @@ else:
 	np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
 	try:
-		subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,signs_sep_base,'0'],stdout=FNULL, stderr=subprocess.STDOUT)
-		subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,rms_sep_base,'1'],stdout=FNULL, stderr=subprocess.STDOUT)
+		subprocess.check_call([
+			sys.executable,
+			'plot_trench_motions.py',
+			'--predicted-base', signs_name,
+			'--observed-file', os.path.join('data', 'vt', vt_observed),
+			'--matches-file', ''.join([signs_sep_base, '.txt']),
+			'--mode', 'signs',
+		])
+		subprocess.check_call([
+			sys.executable,
+			'plot_trench_motions.py',
+			'--predicted-base', rms_name,
+			'--observed-file', os.path.join('data', 'vt', vt_observed),
+			'--matches-file', ''.join([rms_sep_base, '.txt']),
+			'--mode', 'rms',
+		])
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
 print("output: %s" % plot_name)
