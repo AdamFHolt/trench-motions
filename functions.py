@@ -36,7 +36,7 @@ def compute_plate_isotherm(age,DT,k,Tiso):
 
 
 def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,w_ref,vt_ref,\
-	w,slabD,yield_stress,pre,external_force_factor,PSP_force_transmitted,ridge_push,Lop):
+	w,slabD,yield_stress,pre,external_force_factor,ridge_push,Lop):
 
 	vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s 
 	g = 9.81;

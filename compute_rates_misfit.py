@@ -7,7 +7,8 @@ import subprocess, sys
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import yaml
-from functions import compute_plate_buoyancy, compute_plate_isotherm, compute_vsp_withDP
+from functions import compute_vsp_withDP
+from workflow_common import get_vt_col, preprocess_data_table, build_segment_arrays, build_thermal_terms
 plt.ioff()
 
 
@@ -18,7 +19,7 @@ def ensure_parent_dir(path):
 
 
 USAGE = """Usage:
-  python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <PSP_slab_pull_factor> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
   python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
@@ -26,7 +27,6 @@ Arguments:
   formulation           integer model id
   include_DP            0 | 1
   DP_ref                float (Pa)
-  PSP_slab_pull_factor  float
   include_ridge_push    0 | 1
 
 Optional flags:
@@ -65,7 +65,6 @@ if cfg:
 			'formulation',
 			'include_DP',
 			'DP_ref',
-			'PSP_slab_pull_factor',
 			'include_ridge_push',
 		]
 		if k not in cfg
@@ -77,25 +76,23 @@ if cfg:
 	formulation = int(cfg['formulation'])
 	include_DP = int(cfg['include_DP'])
 	DP_ref = float(cfg['DP_ref'])
-	PSP_slab_pull_factor = float(cfg['PSP_slab_pull_factor'])
 	include_ridge_push = int(cfg['include_ridge_push'])
 	extra_args = args_wo_config
 	smoke_mode = bool(cfg.get('smoke', False))
 	skip_map = bool(cfg.get('skip_map', False))
 	out_prefix = str(cfg.get('out_prefix', ''))
 else:
-	if len(args_wo_config) < 6:
+	if len(args_wo_config) < 5:
 		print(USAGE)
 		sys.exit(2)
-	main_args = args_wo_config[:6]
-	extra_args = args_wo_config[6:]
+	main_args = args_wo_config[:5]
+	extra_args = args_wo_config[5:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
 	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 7 = regular, hSP \propto LSP, 8 = regular, hSP \propto V4SP
 											# 9 = regular, with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-	PSP_slab_pull_factor=float(main_args[4]) 	
-	include_ridge_push=int(main_args[5]) 	# 0 = no ridge push, 1 = approximation for ridge push
+	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
 	smoke_mode = False
 	skip_map = False
 	out_prefix = ''
@@ -163,7 +160,6 @@ if include_DP == 0:
 	sys.exit(1)
 
 # calculation parameters
-include_PSP_interactions = 0    # include simple parameterization of PSP force transmission?
 calc_slabL_using_dip = 1 		# 0 = take down-dip slab length from table, 1 = calculate it from dip and slabD
 const_slab_depth = 0  			# 0 = use lallemand depths, 1 = all slabs go to 660 km
 limit_max_depth = 0  			# 0 = no slab depth limit,  1 = limit depth to 660
@@ -184,11 +180,6 @@ kappa = 1e-6; alpha = 3.e-5
 dT = 1300.
 rho0 = 3300.; rhoW = 1000.
 
-# PSP force transmission
-PSP_age = 30.  		# Ma
-PSP_slab_pull = compute_plate_buoyancy(PSP_age,dT,kappa,alpha,rho0) * 450.e3 * 9.81
-PSP_force_transmitted = PSP_slab_pull_factor * PSP_slab_pull
-	
 # search parameters
 lith_visc_min = 20; lith_visc_max = 25
 asth_visc_min = 17; asth_visc_max = 22
@@ -223,100 +214,32 @@ for i in range(0,len(lith_viscs)):
 data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithTrenchWidths_withInteractions.txt'
 data = np.genfromtxt(data_name) # see spreadsheet for column details
 data_vt =np.genfromtxt('data/vts_hs3-nnr-sa.txt') # lat, lon, vtn: hs3, vtn: nnr, vtn: sa
-if vt_ref == 'hs3':
-   vt_col = 2;
-elif vt_ref == 'nnr':
-   vt_col = 3;
-else:
-   vt_col = 4; 
+vt_col = get_vt_col(vt_ref)
+preprocess_data_table(data, limit_max_depth, const_slab_depth, use_avg_Rmin, interpolate_shallow_dip)
 
-for i in range(0,data.shape[0]):
-	if limit_max_depth == 1 and data[i,7] >= 660:
-		data[i,7] = 660.
-	if const_slab_depth == 1:
-		data[i,7] = 660.
-
-# get average radius of curvature
-Rmin_mean = "%.2f" % np.nanmean(data[:,13])
-nan_inds = np.where(np.isnan(data[:,13]))
-if use_avg_Rmin == 1:
-	data[nan_inds,13] = Rmin_mean
-
-if interpolate_shallow_dip == 1:
-	# get average difference between deep and shallow dip
-	sum_diff = 0; n_diff = 0;
-	for i in range(0,data.shape[0]):
-		if np.isnan(data[i,5]) == 0 and np.isnan(data[i,6]) == 0:
-			sum_diff = sum_diff + (data[i,6] - data[i,5])
-			n_diff	 = n_diff + 1
-	avg_dip_diff = sum_diff / n_diff
-	# replace in places where deep dip is missing
-	for i in range(0,data.shape[0]):
-		if np.isnan(data[i,5]) == 0 and np.isnan(data[i,6]) == 1:
-			data[i,6] = data[i,5] + avg_dip_diff
-
-# plate model?
 max_age = 1000
 if limit_max_age == 1:
 	max_age = 90.
 
-num = 0;
-for i in range(0,data.shape[0]):
-	if np.isnan(data[i,26]) == False and np.isnan(data[i,6]) == False and np.isnan(data[i,8]) == False \
-		and np.isnan(data[i,13]) == False and np.isnan(data[i,20]) == False and np.isnan(data[i,7]) == False:
-		num = num + 1
+segments = build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_slabL_using_dip)
+n = segments['n']
+num = segments['num']
+Lsp = segments['Lsp']
+dip = segments['dip']
+slabD = segments['slabD']
+vc = segments['vc']
+Rmin = segments['Rmin']
+age = segments['age']
+vt_actual = segments['vt_actual']
+slabL = segments['slabL']
+latlon = segments['latlon']
+azims = segments['azims']
+w = segments['w']
+slabL_buoy = segments['slabL_buoy']
+Lop = segments['Lop']
+external_force_factor = segments['external_force_factor']
 
-Lsp=np.zeros((num,1));			dip=np.zeros((num,1))
-slabD=np.zeros((num,1));		vc=np.zeros((num,1))
-Rmin=np.zeros((num,1));			age=np.zeros((num,1))
-vt_actual=np.zeros((num,1));	slabL=np.zeros((num,1))
-latlon=np.zeros((num,2));		azims=np.zeros((num,1))
-w = np.zeros((num,1));			slabL_buoy=np.zeros((num,1))
-Lop=np.zeros((num,1));
-
-external_force_factor = np.zeros((num,1));	ride_push = np.zeros((num,1))
-
-n = 0
-for i in range(0,data.shape[0]):
-	if np.isnan(data[i,26]) == False and np.isnan(data[i,6]) == False and np.isnan(data[i,8]) == False \
-		and np.isnan(data[i,13]) == False and np.isnan(data[i,20]) == False and np.isnan(data[i,7]) == False:
-		
-		latlon[n,0]=data_vt[i,0]; latlon[n,1]=data_vt[i,1];  
-		azims[n,0] = data[i,4]
-		Lsp[n,0] = data[i,26] * 1e3
-		Lop[n,0] = data[i,27] * 1e3
-		dip[n,0] = data[i,6]
-		vc[n,0] = (data[i,9] / 10.0) * vel_converter
-		Rmin[n,0] = data[i,13] * 1e3
-		if data[i,20] > max_age:
-			age[n,0] = max_age
-		else:
-			age[n,0] = data[i,20]
-		w[n,0] = data[i,25] * 1e3
-		vt_actual[n,0] = data_vt[i,vt_col] / 10.0
-		external_force_factor[n,0] = data[i,27]
-		slabD[n,0] = data[i,7] * 1e3
-
-		if calc_slabL_using_dip == 1:
-			slabL[n,0] = slabD[n,0]/np.tan(np.deg2rad(dip[n,0]))
-			slabL_buoy[n,0] = slabD[n,0]/np.tan(np.deg2rad(dip[n,0]))
-		else:
-			slabL[n,0] = data[i,8] * 1e3
-			slabL_buoy[n,0] = data[i,8] * 1e3
-
-		n = n + 1
-
-if include_PSP_interactions == 0:
-	external_force_factor = 0. * external_force_factor
-
-H = np.zeros((num,1))
-oceanic_buoy = np.zeros((num,1))
-for i in range(0,n):
-	H[i] = compute_plate_isotherm(age[i],1300,1e-6,1200) * 1e3; # [m]
-	oceanic_buoy[i] = compute_plate_buoyancy(age[i],1300,1e-6,3e-5,3300); # [kg/m2]
-	if include_ridge_push == 1:
-		ride_push[i] = g * rho0 * alpha * dT * ( 1.0 + ((2.0 * rho0 * alpha * dT)/(np.pi * (rho0 - rhoW))) ) * kappa * (age[i] * ma_to_s); # [N/m]
-		# print ride_push[i]
+H, oceanic_buoy, ride_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
 
 rms_min = 10.0
 num_sign_matches_max = 0
@@ -337,12 +260,12 @@ for k in range(0,len(lith_viscs)):
 			vsp_estimate=np.zeros((num,1));
 			for i in range(0,len(vt_actual)):
 				vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
-					w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,pre,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
+					w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,pre,external_force_factor[i],ride_push[i],Lop[i])
 
 		# vectorized solve for standard formulations
 		else:
 			vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-				w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,PSP_force_transmitted,ride_push,Lop)
+				w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,ride_push,Lop)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
@@ -417,40 +340,35 @@ if include_DP == 0:
 else:
 	DP_string = ''.join(['.DP',str("%.3g" % DP_ref),'MPa'])
 
-if include_PSP_interactions == 1:
-	PSP_string = ''.join(['.PSPfact',str(PSP_slab_pull_factor)])
-else:
-	PSP_string = ''
-
 if include_ridge_push:
 	RP_string = '.withRP'
 else:
 	RP_string = ''
 
 if formulation == 1:  # viscous bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.plastic_bending.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3: # just slab pull (with prefactor)
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.just-slab-pull.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
 elif formulation == 7:  # regular, hSP \propto LSP
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 elif formulation == 8:  # regular, hSP \propto VSP
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 elif formulation == 9:  # regular, with OP drag
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_withOP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
+	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
+	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
+	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = out_path(plot_name)
 signs_name = out_path(signs_name)
 rms_name = out_path(rms_name)

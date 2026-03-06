@@ -70,17 +70,17 @@ make install
 
 Example misfit sweep:
 ```bash
-python3 compute_rates_misfit.py sa 1 1 23.5e6 0.25 1
+python3 compute_rates_misfit.py sa 1 1 23.5e6 1
 ```
 
 Smoke run (fast grid, no GMT map plotting):
 ```bash
-python3 compute_rates_misfit.py sa 1 1 23.5e6 0.25 0 --smoke --skip-map
+python3 compute_rates_misfit.py sa 1 1 23.5e6 0 --smoke --skip-map
 ```
 
 Isolated outputs under a custom directory:
 ```bash
-python3 compute_rates_misfit.py sa 1 1 23.5e6 0.25 0 --smoke --skip-map --out-prefix results/exp1
+python3 compute_rates_misfit.py sa 1 1 23.5e6 0 --smoke --skip-map --out-prefix results/exp1
 ```
 
 Equivalent via Makefile:
@@ -100,17 +100,17 @@ make smoke-config
 
 Example single run:
 ```bash
-python3 compute_rates_single.py sa 1 1 23.5e6 0.25 1e21 1e22
+python3 compute_rates_single.py sa 1 1 23.5e6 1e21 1e22
 ```
 
 Single-run smoke (skip GMT map plotting):
 ```bash
-python3 compute_rates_single.py sa 1 1 23.5e6 0.25 1e21 1e22 --skip-map
+python3 compute_rates_single.py sa 1 1 23.5e6 1e21 1e22 --skip-map
 ```
 
 Isolated single-run outputs:
 ```bash
-python3 compute_rates_single.py sa 1 1 23.5e6 0.25 1e21 1e22 --skip-map --out-prefix results/exp1_single
+python3 compute_rates_single.py sa 1 1 23.5e6 1e21 1e22 --skip-map --out-prefix results/exp1_single
 ```
 
 Equivalent via Makefile:
@@ -176,11 +176,11 @@ python3 quick_plot.py --predicted <predicted_txt> --observed data/vt/tnew.sa.dat
 
 ## Argument Reference
 - `compute_rates_misfit.py` positional args:
-  `vt_ref formulation include_DP DP_ref PSP_slab_pull_factor include_ridge_push`
+  `vt_ref formulation include_DP DP_ref include_ridge_push`
 - `compute_rates_misfit.py` optional flags:
   `--smoke --skip-map --out-prefix <dir> --config <path.yaml> --vt-ref <hs3|nnr|sa>`
 - `compute_rates_single.py` positional args:
-  `vt_ref formulation include_DP DP_ref PSP_slab_pull_factor asthen_visc lith_visc`
+  `vt_ref formulation include_DP DP_ref asthen_visc lith_visc`
 - `compute_rates_single.py` optional flags:
   `--skip-map --out-prefix <dir> --config <path.yaml>`
 

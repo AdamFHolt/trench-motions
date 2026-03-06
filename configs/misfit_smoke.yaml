@@ -2,7 +2,6 @@ vt_ref: sa
 formulation: 1
 include_DP: 1
 DP_ref: 2.35e7
-PSP_slab_pull_factor: 0.25
 include_ridge_push: 0
 smoke: true
 skip_map: true
