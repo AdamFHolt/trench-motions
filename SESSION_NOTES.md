@@ -1,7 +1,7 @@
 # Session Notes (Trench Motions)
 
 ## Current Status
-- Repository is cleaned and pushed to `origin/main`.
+- Repository workflow is Python-only (no active GMT or shell-script execution).
 - Core workflow is simplified around:
   - `make run-matrix-with-summary`
   - `make run-matrix-maps-with-summary`
@@ -21,8 +21,20 @@
 - Added shared prep utilities:
   - `workflow_common.py`
   - used by both `compute_rates_misfit.py` and `compute_rates_single.py`
-- Replaced GMT map plotting with Python plotting:
+- Consolidated plotting into:
+  - `plotting_functions.py`
+  - includes misfit heatmaps, quick diagnostics, and full trench-motion map rendering
+- Updated sweep behavior:
+  - quick diagnostic plot is generated for best-fit results in every sweep run
+  - `--skip-map` now skips only full map rendering
+- Removed legacy script files:
   - `plot_trench_motions.py`
+  - `plot_trench_motions.sh`
+  - `quick_plot.py` (wrapper no longer needed)
+  - legacy `archive/legacy/*.sh` run scripts
+- Removed generated GMT session artifacts from repo root:
+  - `gmt.conf`
+  - `gmt.history`
 - Reorganized outputs:
   - `plots/<hs3|nnr|sa>/param-sweep/`
   - `plots/<hs3|nnr|sa>/maps/`

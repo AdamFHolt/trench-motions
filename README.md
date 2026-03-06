@@ -35,8 +35,10 @@ make run-matrix-maps-with-summary
 ## What Is Active
 - `compute_rates_misfit.py`: parameter sweep and best-fit selection.
 - `compute_rates_single.py`: single-parameter model run.
-- `quick_plot.py`: fast diagnostic observed-vs-predicted check.
-- `plot_trench_motions.py`: map plotting (used when `--skip-map` is not set).
+- `plotting_functions.py`: shared plotting utilities for:
+  - misfit heatmaps
+  - quick observed-vs-predicted diagnostics
+  - full trench-motion maps
 
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
@@ -53,6 +55,7 @@ make run-matrix-maps-with-summary
 - Active scripts are Python 3 compatible.
 - Python dependencies: `numpy`, `scipy`, `matplotlib`.
 - Map plotting dependencies: Python packages already in this repo (`numpy`, `scipy`, `matplotlib`).
+- In sweep runs, a quick diagnostic plot is generated for the best-fit case in every reference frame.
 
 ## Core Commands
 From repository root.
@@ -79,7 +82,7 @@ python3 compute_rates_single.py --help
 ```
 
 ## Datasets for map plotting
-`plot_trench_motions.py` accepts the same dataset layout controls via `DATASETS_DIR`.
+Map plotting uses the same dataset layout controls via `DATASETS_DIR`.
 
 Set `DATASETS_DIR` to a dataset root containing:
 - `age/age.3.6.NaN.grd`
@@ -90,7 +93,7 @@ Example:
 export DATASETS_DIR=/path/to/datasets
 ```
 
-If `DATASETS_DIR` is not set, the script looks in `data/gmt_datasets`.
+If `DATASETS_DIR` is not set, map plotting looks in `data/gmt_datasets`.
 It also auto-detects a flat layout in `data/`:
 - `data/age.3.6.NaN.grd`
 - `data/PB2002_tdiddy.gmt`

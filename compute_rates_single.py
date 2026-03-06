@@ -3,11 +3,12 @@
 import matplotlib
 matplotlib.use('Agg')
 import os, numpy as np
-import subprocess, sys, tempfile, shutil
+import sys, tempfile, shutil
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import yaml
 from functions import compute_vsp_withDP
+from plotting_functions import save_quick_plot, save_trench_motion_map
 from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
 plt.ioff()
 
@@ -31,7 +32,7 @@ Arguments:
   lith_visc             float (Pa.s)
 
 Optional flags:
-  --skip-map  Skip map plotting subprocess call.
+  --skip-map  Skip map plotting call.
   --out-prefix <dir>  Write generated outputs under a custom base directory.
   --config <path.yaml>  Load arguments from YAML config.
 """
@@ -294,29 +295,26 @@ if skip_map:
 	print("skipping map plotting (--skip-map)")
 	quick_plot_name = ''.join([rms_name, '.quick.png'])
 	try:
-		subprocess.check_call([
-			sys.executable,
-			'quick_plot.py',
-			'--predicted', rms_txt_name,
-			'--observed', os.path.join('data', 'vt', vt_observed),
-			'--output', quick_plot_name,
-			'--title', 'Single-run quick check ({})'.format(vt_ref)
-		])
-	except subprocess.CalledProcessError as exc:
-		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
+		save_quick_plot(
+			predicted_path=rms_txt_name,
+			observed_path=os.path.join('data', 'vt', vt_observed),
+			output_path=quick_plot_name,
+			title='Single-run quick check ({})'.format(vt_ref),
+		)
+	except Exception as exc:
+		print("warning: quick plot generation failed ({})".format(exc))
 else:
 	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
 	rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
 	np.savetxt(''.join([rms_sep_base, '.txt']), vsps, fmt='%.4f')
 	try:
-		subprocess.check_call([
-			sys.executable,
-			'plot_trench_motions.py',
-			'--predicted-base', rms_name,
-			'--observed-file', os.path.join('data', 'vt', vt_observed),
-			'--matches-file', ''.join([rms_sep_base, '.txt']),
-			'--mode', 'rms',
-		])
+		save_trench_motion_map(
+			predicted_base=rms_name,
+			observed_file=os.path.join('data', 'vt', vt_observed),
+			matches_file=''.join([rms_sep_base, '.txt']),
+			mode='rms',
+			datasets_dir=os.environ.get('DATASETS_DIR', ''),
+		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
 print("output: %s" % plot_name)

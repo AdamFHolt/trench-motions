@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import os, numpy as np
-import subprocess, sys, tempfile, shutil
+import sys, tempfile, shutil
 import yaml
 from functions import compute_vsp_withDP
-from plotting_functions import save_misfit_heatmap
+from plotting_functions import save_misfit_heatmap, save_quick_plot, save_trench_motion_map
 from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
 
 
@@ -28,7 +28,7 @@ Arguments:
 Optional flags:
   --vt-ref <hs3|nnr|sa>  Override vt_ref (mainly for shared configs).
   --smoke     Use a small 3x3 parameter grid for fast checks.
-  --skip-map  Skip map plotting subprocess calls.
+  --skip-map  Skip full map plotting calls (quick plot is still generated).
   --out-prefix <dir>  Write generated outputs under a custom base directory.
   --config <path.yaml>  Load arguments from YAML config.
 """
@@ -381,20 +381,19 @@ np.savetxt(signs_txt_name, signs_predicted_vts, fmt='%.4f')
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
+quick_plot_name = ''.join([rms_name, '.quick.png'])
+try:
+	save_quick_plot(
+		predicted_path=rms_txt_name,
+		observed_path=os.path.join('data', 'vt', vt_observed),
+		output_path=quick_plot_name,
+		title='RMS quick check ({})'.format(vt_ref),
+	)
+except Exception as exc:
+	print("warning: quick plot generation failed ({})".format(exc))
+
 if skip_map:
 	print("skipping map plotting (--skip-map)")
-	quick_plot_name = ''.join([rms_name, '.quick.png'])
-	try:
-		subprocess.check_call([
-			sys.executable,
-			'quick_plot.py',
-			'--predicted', rms_txt_name,
-			'--observed', os.path.join('data', 'vt', vt_observed),
-			'--output', quick_plot_name,
-			'--title', 'RMS quick check ({})'.format(vt_ref)
-		])
-	except subprocess.CalledProcessError as exc:
-		print("warning: quick plot generation failed (exit code {})".format(exc.returncode))
 else:
 	print("plotting map")
 	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
@@ -403,22 +402,20 @@ else:
 	np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
 	try:
-		subprocess.check_call([
-			sys.executable,
-			'plot_trench_motions.py',
-			'--predicted-base', signs_name,
-			'--observed-file', os.path.join('data', 'vt', vt_observed),
-			'--matches-file', ''.join([signs_sep_base, '.txt']),
-			'--mode', 'signs',
-		])
-		subprocess.check_call([
-			sys.executable,
-			'plot_trench_motions.py',
-			'--predicted-base', rms_name,
-			'--observed-file', os.path.join('data', 'vt', vt_observed),
-			'--matches-file', ''.join([rms_sep_base, '.txt']),
-			'--mode', 'rms',
-		])
+		save_trench_motion_map(
+			predicted_base=signs_name,
+			observed_file=os.path.join('data', 'vt', vt_observed),
+			matches_file=''.join([signs_sep_base, '.txt']),
+			mode='signs',
+			datasets_dir=os.environ.get('DATASETS_DIR', ''),
+		)
+		save_trench_motion_map(
+			predicted_base=rms_name,
+			observed_file=os.path.join('data', 'vt', vt_observed),
+			matches_file=''.join([rms_sep_base, '.txt']),
+			mode='rms',
+			datasets_dir=os.environ.get('DATASETS_DIR', ''),
+		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
 print("output: %s" % plot_name)
