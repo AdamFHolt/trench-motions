@@ -141,6 +141,9 @@ if formulation not in [1, 2, 3]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
+if include_DP == 0:
+	print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
+	sys.exit(1)
 
 
 # calculation parameters
@@ -283,51 +286,40 @@ for i in range(0,n):
 
 rms_min = 10.0
 num_sign_matches_max = 0
-for k in range(0,1):
+stored_rms_vals = np.zeros((num,1));
 
-	for j in range(0,1):
+visc_asthen = asthen_visc
+visc_lith = lith_visc
+yield_sigma = 1
+pre = 1
 
-		stored_rms_vals = np.zeros((num,1));
-		stored_sign_vals = np.zeros((num,1));
+vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
+	w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 
-		visc_asthen = asthen_visc
-		visc_lith = lith_visc
-		yield_sigma = 1
-		pre = 1
+vt_estimate = (vc/vel_converter) - vsp_estimate
+rms_sum = 0; num_sign_matches = 0;
+for i in range(0,n):
+	diff = float(vt_estimate[i,0] - vt_actual[i,0])
+	rms_sum = rms_sum + diff**2;
+	stored_rms_vals[i] = np.abs(diff)
+	if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
+		num_sign_matches = num_sign_matches + 1
+	elif (vt_estimate[i] > -0.5 and vt_estimate[i] <= 0.5) and (vt_actual[i] > -0.5 and vt_actual[i] <= 0.5):
+		num_sign_matches = num_sign_matches + 1
+rms_act = float(np.sqrt(rms_sum / float(n)))
 
-		if include_DP == 1:
-			vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-				w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,PSP_force_transmitted,ride_push,Lop)
-		else:
-			sys.exit(1)
+if rms_act < rms_min:
+	rms_min = rms_act;
+	rms_lith_visc = np.log10(visc_lith);
+	rms_asthen_visc = np.log10(visc_asthen);
+	rms_yield_stress = yield_sigma/1e6;
+	rms_pre = pre;
+	rms_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
+	rms_separated = np.concatenate((latlon,stored_rms_vals), axis=1)
+	vsps = np.concatenate((latlon,vsp_estimate), axis=1)
 
-		vt_estimate = (vc/vel_converter) - vsp_estimate
-		rms_sum = 0; num_sign_matches = 0;
-		for i in range(0,n):
-			diff = float(vt_estimate[i,0] - vt_actual[i,0])
-			rms_sum = rms_sum + diff**2;
-			stored_rms_vals[i] = np.abs(diff)
-			if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
-				num_sign_matches = num_sign_matches + 1
-				stored_sign_vals[i] = 1
-			elif (vt_estimate[i] > -0.5 and vt_estimate[i] <= 0.5) and (vt_actual[i] > -0.5 and vt_actual[i] <= 0.5):
-				num_sign_matches = num_sign_matches + 1
-				stored_sign_vals[i] = 1
-		rms_act = float(np.sqrt(rms_sum / float(n)))
-
-
-		if rms_act < rms_min:
-			rms_min = rms_act;
-			rms_lith_visc = np.log10(visc_lith);
-			rms_asthen_visc = np.log10(visc_asthen);
-			rms_yield_stress = yield_sigma/1e6;
-			rms_pre = pre;
-			rms_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
-			rms_separated = np.concatenate((latlon,stored_rms_vals), axis=1)
-			vsps = np.concatenate((latlon,vsp_estimate), axis=1)
-
-		if num_sign_matches > num_sign_matches_max:
-			num_sign_matches_max = num_sign_matches;
+if num_sign_matches > num_sign_matches_max:
+	num_sign_matches_max = num_sign_matches;
 
 print("------------")
 print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
