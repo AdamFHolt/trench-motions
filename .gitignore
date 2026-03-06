@@ -4,5 +4,5 @@ __pycache__/
 *.pyc
 tmp/
 .venv/
-runs/
+results/
 archive/generated/

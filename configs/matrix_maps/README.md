@@ -4,7 +4,7 @@ This config set mirrors `configs/matrix/` but enables GMT map generation.
 
 Differences:
 - `skip_map: false`
-- `out_prefix` points to `runs/matrix_maps/...`
+- `out_prefix` points to `results/matrix_maps/...`
 
 Prerequisite for running:
 - set `DATASETS_DIR` for `plot_trench_motions.sh`

@@ -20,7 +20,7 @@ SINGLE_LITH_VISC ?= 1e22
 
 QUICK_PREDICTED ?= archive/generated/predictions/new/linear/rms_samodel.DP2.35e+07MPa.l20.0_a10e22.0.viscous_bending.txt
 QUICK_OBSERVED ?= data/vt/tnew.sa.dat
-QUICK_OUTPUT ?= runs/quick/quick_check.png
+QUICK_OUTPUT ?= results/quick/quick_check.png
 QUICK_TITLE ?= Manual quick check
 
 MISFIT_CONFIG ?= configs/misfit_smoke.yaml
@@ -39,8 +39,8 @@ MATRIX_MAP_CONFIGS ?= \
 	configs/matrix_maps/powerlaw_hs3.yaml \
 	configs/matrix_maps/powerlaw_nnr.yaml \
 	configs/matrix_maps/powerlaw_sa.yaml
-MATRIX_RUNS_DIR ?= runs/matrix
-MATRIX_SUMMARY_DIR ?= runs/matrix/summary
+MATRIX_RUNS_DIR ?= results/matrix
+MATRIX_SUMMARY_DIR ?= results/matrix/summary
 
 .PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary run-matrix-maps-with-summary quick-plot test
 venv:
@@ -106,7 +106,7 @@ run-matrix-smoke-with-summary: run-matrix-smoke matrix-summary
 
 run-matrix-maps-with-summary:
 	@$(MAKE) run-matrix-maps
-	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=runs/matrix_maps MATRIX_SUMMARY_DIR=runs/matrix_maps/summary
+	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=results/matrix_maps MATRIX_SUMMARY_DIR=results/matrix_maps/summary
 
 quick-plot:
 	$(PYTHON) quick_plot.py \

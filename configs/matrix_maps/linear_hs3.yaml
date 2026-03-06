@@ -6,4 +6,4 @@ trans_strain_rate: 1.0e-13
 PSP_slab_pull_factor: 0.25
 include_ridge_push: 1
 skip_map: false
-out_prefix: runs/matrix_maps/linear_viscous_bending/hs3
+out_prefix: results/matrix_maps/linear/hs3

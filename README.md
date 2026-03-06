@@ -2,72 +2,70 @@
 
 This repository contains analytical subduction/trench-motion modeling scripts and supporting datasets.
 
-## Main scripts
-- `compute_rates_misfit.py`: parameter sweep over viscosity/prefactor/yield settings and selection of best-fit models.
-- `compute_rates_single.py`: single-parameter model run.
-- `functions.py`: core analytical model functions.
-- `create_trench_motion_table.py`: rebuilds `data/vts_hs3-nnr-sa.txt` from `data/vt/*.dat`.
-- `plot_trench_motions.sh`: GMT-based map plotting for observed vs predicted trench motions.
+## Start Here (Student Workflow)
+Run from repository root.
 
-## Active vs legacy
-- Active entrypoints:
-  - `compute_rates_misfit.py`
-  - `compute_rates_single.py`
-  - `quick_plot.py`
-  - `create_trench_motion_table.py`
-  - `plot_trench_motions.sh`
-- Legacy/deprecated:
-  - `archive/legacy/compute_rate_plots.py`
-  - `archive/legacy/compute_rate_plots_vtvp.py`
-  - `archive/legacy/many_runs_linear-viscosity.sh`
-  - `archive/legacy/many_runs_nonlinear-viscosity.sh`
-  - `archive/legacy/old/` (historical versions)
-  - `archive/legacy/misc/` (older analytical notebooks/scripts)
-
-## Data and outputs
-- Inputs: `data/` and `data/vt/`.
-- Active run outputs: `runs/` (recommended via `--out-prefix`/configs).
-- Archived historical generated outputs: `archive/generated/`.
-- Archived reference/historical small files: `archive/reference/`.
-- Archived legacy code: `archive/legacy/`.
-
-## Canonical student workflow
-Run this exact sequence from repo root for a reproducible fast sweep + summary:
-```bash
-source .venv/bin/activate
-make run-matrix-smoke-with-summary
-```
-Outputs:
-- Sweep products: `runs/matrix/...`
-- Summary table/plots: `runs/matrix/summary/`
-
-## Runtime notes
-- Active scripts are Python 3 compatible.
-- Python dependencies: `numpy`, `scipy`, `matplotlib`.
-- Map plotting dependencies: GMT tools (`gmtset`, `makecpt`, `psxy`, `grdview`, etc.), `eps2eps`, and ImageMagick `convert`.
-
-## Environment Setup
-Quick setup:
+1. Setup environment:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Equivalent via Makefile:
+2. Run the canonical fast sweep + summary:
 ```bash
-make venv
-make install
+make run-matrix-smoke-with-summary
 ```
 
-## Running
-From the repository root.
+3. Look at results:
+- Sweep products: `results/matrix/...`
+- Summary table: `results/matrix/summary/matrix_summary.csv`
+- Summary plots: `results/matrix/summary/*.png`
+
+4. Optional full-size sweep (slower):
+```bash
+make run-matrix
+```
+
+5. Optional map-producing run (requires GMT datasets):
+```bash
+export DATASETS_DIR=/path/to/datasets
+make run-matrix-maps-with-summary
+```
+
+## What Is Active
+- `compute_rates_misfit.py`: parameter sweep and best-fit selection.
+- `compute_rates_single.py`: single-parameter model run.
+- `quick_plot.py`: fast non-GMT diagnostic map.
+- `create_trench_motion_table.py`: rebuilds `data/vts_hs3-nnr-sa.txt` from `data/vt/*.dat`.
+- `plot_trench_motions.sh`: GMT map plotting (used only when `--skip-map` is not set).
+
+## Project Layout
+- Inputs: `data/` and `data/vt/`.
+- Active outputs: `results/`.
+- Archived generated outputs: `archive/generated/`.
+- Archived reference files: `archive/reference/`.
+- Archived legacy scripts: `archive/legacy/`.
+
+## Runtime notes
+- Active scripts are Python 3 compatible.
+- Python dependencies: `numpy`, `scipy`, `matplotlib`.
+- Map plotting dependencies: GMT tools (`gmtset`, `makecpt`, `psxy`, `grdview`, etc.), `eps2eps`, and ImageMagick `convert`.
+
+## Additional Commands
+From repository root.
 
 Show CLI help:
 ```bash
 python3 compute_rates_misfit.py --help
 python3 compute_rates_single.py --help
 python3 create_trench_motion_table.py --help
+```
+
+Environment setup via Makefile:
+```bash
+make venv
+make install
 ```
 
 Example misfit sweep:
@@ -82,7 +80,7 @@ python3 compute_rates_misfit.py sa 1 1 23.5e6 1e-13 0.25 0 --smoke --skip-map
 
 Isolated outputs under a custom directory:
 ```bash
-python3 compute_rates_misfit.py sa 1 1 23.5e6 1e-13 0.25 0 --smoke --skip-map --out-prefix runs/exp1
+python3 compute_rates_misfit.py sa 1 1 23.5e6 1e-13 0.25 0 --smoke --skip-map --out-prefix results/exp1
 ```
 
 Equivalent via Makefile:
@@ -112,7 +110,7 @@ python3 compute_rates_single.py sa 1 1 23.5e6 1e-13 0.25 1e21 1e22 --skip-map
 
 Isolated single-run outputs:
 ```bash
-python3 compute_rates_single.py sa 1 1 23.5e6 1e-13 0.25 1e21 1e22 --skip-map --out-prefix runs/exp1_single
+python3 compute_rates_single.py sa 1 1 23.5e6 1e-13 0.25 1e21 1e22 --skip-map --out-prefix results/exp1_single
 ```
 
 Equivalent via Makefile:
@@ -146,7 +144,7 @@ export DATASETS_DIR=/path/to/datasets
 make run-matrix-maps
 ```
 
-Batch matrix summary tables/plots from `runs/matrix/*`:
+Batch matrix summary tables/plots from `results/matrix/*`:
 ```bash
 make matrix-summary
 ```
