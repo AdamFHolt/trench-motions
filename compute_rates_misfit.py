@@ -5,7 +5,7 @@ import subprocess, sys, tempfile, shutil
 import yaml
 from functions import compute_vsp_withDP
 from plotting_functions import save_misfit_heatmap
-from workflow_common import get_vt_col, preprocess_data_table, build_segment_arrays, build_thermal_terms
+from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
 
 
 def ensure_parent_dir(path):
@@ -209,8 +209,8 @@ for i in range(0,len(lith_viscs)):
 
 data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithTrenchWidths_withInteractions.txt'
 data = np.genfromtxt(data_name) # see spreadsheet for column details
-data_vt =np.genfromtxt('data/vts_hs3-nnr-sa.txt') # lat, lon, vtn: hs3, vtn: nnr, vtn: sa
 vt_col = get_vt_col(vt_ref)
+data_vt = build_vt_table_from_tnew(data, vt_ref)
 preprocess_data_table(data, limit_max_depth, const_slab_depth, use_avg_Rmin, interpolate_shallow_dip)
 
 max_age = 1000

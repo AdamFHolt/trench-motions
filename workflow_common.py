@@ -11,6 +11,40 @@ def get_vt_col(vt_ref):
     return 4
 
 
+def build_vt_table_from_tnew(data, vt_ref, tol=0.1):
+    tnew_path = 'data/vt/tnew.{}.dat'.format(vt_ref)
+    tnew = np.genfromtxt(tnew_path)
+    if tnew.ndim == 1:
+        tnew = tnew.reshape(1, -1)
+    if tnew.shape[1] < 6:
+        raise ValueError('Observed file has unexpected format: {}'.format(tnew_path))
+
+    decimals = max(0, int(round(-np.log10(tol)))) if tol < 1 else 0
+    vt_by_coord = {}
+    for i in range(0, tnew.shape[0]):
+        lat = round(float(tnew[i, 1]), decimals)
+        lon = round(float(tnew[i, 0]), decimals)
+        vt_by_coord[(lat, lon)] = float(tnew[i, 5])  # mm/yr
+
+    data_vt = np.full((data.shape[0], 5), np.nan)
+    data_vt[:, 0] = data[:, 1]  # lat
+    data_vt[:, 1] = data[:, 2]  # lon
+    vt_col = get_vt_col(vt_ref)
+
+    n_match = 0
+    for i in range(0, data.shape[0]):
+        lat = round(float(data[i, 1]), decimals)
+        lon = round(float(data[i, 2]), decimals)
+        key = (lat, lon)
+        if key in vt_by_coord:
+            data_vt[i, vt_col] = vt_by_coord[key]
+            n_match = n_match + 1
+
+    if n_match == 0:
+        raise ValueError('No coordinate matches found between model table and {}'.format(tnew_path))
+    return data_vt
+
+
 def preprocess_data_table(data, limit_max_depth, const_slab_depth, use_avg_Rmin, interpolate_shallow_dip):
     for i in range(0, data.shape[0]):
         if limit_max_depth == 1 and data[i, 7] >= 660:
