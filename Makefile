@@ -27,7 +27,7 @@ REF_FRAMES ?= hs3 nnr sa
 MATRIX_RUNS_DIR ?= results/param-sweep
 MATRIX_SUMMARY_DIR ?= results/param-sweep/summary
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary run-matrix-maps-with-summary quick-plot
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary quick-plot
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -66,12 +66,6 @@ run-matrix:
 		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix $(MATRIX_RUNS_DIR)/$$ref || exit $$?; \
 	done
 
-run-matrix-smoke:
-	@for ref in $(REF_FRAMES); do \
-		echo "[matrix-smoke] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix $(MATRIX_RUNS_DIR)/$$ref --smoke || exit $$?; \
-	done
-
 run-matrix-maps:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix-maps] $$ref"; \
@@ -82,8 +76,6 @@ matrix-summary:
 	$(PYTHON) matrix_summary.py --runs-dir $(MATRIX_RUNS_DIR) --output-dir $(MATRIX_SUMMARY_DIR)
 
 run-matrix-with-summary: run-matrix matrix-summary
-
-run-matrix-smoke-with-summary: run-matrix-smoke matrix-summary
 
 run-matrix-maps-with-summary:
 	@$(MAKE) run-matrix-maps

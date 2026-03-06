@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 2. Run the canonical fast sweep + summary:
 ```bash
-make run-matrix-smoke-with-summary
+make run-matrix-with-summary
 ```
 
 3. Look at results:
@@ -136,11 +136,6 @@ Matrix runs (config-driven):
 make run-matrix
 ```
 
-Fast matrix sanity pass (forces smoke grid):
-```bash
-make run-matrix-smoke
-```
-
 Map-producing matrix runs (requires GMT datasets):
 ```bash
 export DATASETS_DIR=/path/to/datasets
@@ -158,7 +153,7 @@ make matrix-summary
 
 One-shot run + summary:
 ```bash
-make run-matrix-smoke-with-summary
+make run-matrix-with-summary
 ```
 
 One-shot map run + summary:
