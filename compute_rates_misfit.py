@@ -133,7 +133,7 @@ if vt_ref_override:
 def out_path(relative_path):
 	if out_prefix:
 		return os.path.join(out_prefix, relative_path)
-	return os.path.join('results', 'manual', relative_path)
+	return os.path.join('results', 'one-off', relative_path)
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)

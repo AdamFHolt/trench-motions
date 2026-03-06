@@ -45,7 +45,7 @@ make run-matrix-maps-with-summary
 - Active outputs:
   - `results/param-sweep/` for parameter sweeps + summaries.
   - `results/maps/` for map-producing matrix runs.
-  - `results/manual/` for direct one-off script runs without `--out-prefix`.
+  - `results/one-off/` for direct one-off script runs without `--out-prefix`.
 - Archived generated outputs: `archive/generated/`.
 - Archived reference files: `archive/reference/`.
 - Archived legacy scripts: `archive/legacy/`.
