@@ -7,8 +7,8 @@ Run from repository root.
 
 1. Setup environment:
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv env
+source env/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -18,18 +18,17 @@ make run-matrix-with-summary
 ```
 
 3. Look at results:
-- Sweep products: `results/param-sweep/...`
-- Summary table: `results/param-sweep/summary/matrix_summary.csv`
-- Summary plots: `results/param-sweep/summary/*.png`
+- Sweep products: `plots/<hs3|nnr|sa>/param-sweep/...`
+- Sweep summary table: `plots/summary/param-sweep/matrix_summary.csv`
+- Sweep summary plots: `plots/summary/param-sweep/*.png`
 
 4. Optional sweep only (no summary step):
 ```bash
 make run-matrix
 ```
 
-5. Optional map-producing run (requires GMT datasets):
+5. Optional map-producing run:
 ```bash
-export DATASETS_DIR=/path/to/datasets
 make run-matrix-maps-with-summary
 ```
 
@@ -43,9 +42,10 @@ make run-matrix-maps-with-summary
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
 - Active outputs:
-  - `results/param-sweep/` for parameter sweeps + summaries.
-  - `results/maps/` for map-producing matrix runs.
-  - `results/one-off/` for direct one-off script runs without `--out-prefix`.
+  - `plots/hs3/param-sweep/`, `plots/nnr/param-sweep/`, `plots/sa/param-sweep/` for parameter sweeps.
+  - `plots/hs3/maps/`, `plots/nnr/maps/`, `plots/sa/maps/` for map-producing runs.
+  - `plots/summary/param-sweep/` and `plots/summary/maps/` for summary products.
+  - direct script runs without `--out-prefix` write under `plots/<vt_ref>/maps/`.
 - Archived generated outputs: `archive/generated/`.
 - Archived reference files: `archive/reference/`.
 - Archived legacy scripts: `archive/legacy/`.
@@ -63,13 +63,12 @@ Main workflow:
 make run-matrix-with-summary
 ```
 
-Map workflow (requires GMT datasets):
+Map workflow:
 ```bash
-export DATASETS_DIR=/path/to/datasets
 make run-matrix-maps-with-summary
 ```
 
-Single one-off run:
+Single direct run:
 ```bash
 python3 compute_rates_single.py sa 1 1 23.5e6 1e21 1e22
 ```
@@ -93,3 +92,7 @@ export DATASETS_DIR=/path/to/datasets
 ```
 
 If `DATASETS_DIR` is not set, the script looks in `data/gmt_datasets`.
+It also auto-detects a flat layout in `data/`:
+- `data/age.3.6.NaN.grd`
+- `data/PB2002_tdiddy.gmt`
+If these datasets are missing, map plotting still runs, but without the age raster background and PB2002 boundary overlay.

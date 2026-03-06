@@ -1,11 +1,11 @@
 PYTHON ?= python3
-VENV_DIR ?= .venv
+VENV_DIR ?= env
+MAKEFLAGS += --no-print-directory
 
 MATRIX_CONFIG ?= configs/matrix.yaml
 MATRIX_MAP_CONFIG ?= configs/matrix_maps.yaml
 REF_FRAMES ?= hs3 nnr sa
-MATRIX_RUNS_DIR ?= results/param-sweep
-MATRIX_SUMMARY_DIR ?= results/param-sweep/summary
+SUMMARY_SUITES ?= param-sweep
 
 .PHONY: venv install run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary
 venv:
@@ -18,20 +18,23 @@ install:
 run-matrix:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix $(MATRIX_RUNS_DIR)/$$ref || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/param-sweep || exit $$?; \
 	done
 
 run-matrix-maps:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix-maps] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix results/maps/$$ref || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/maps || exit $$?; \
 	done
 
 matrix-summary:
-	$(PYTHON) matrix_summary.py --runs-dir $(MATRIX_RUNS_DIR) --output-dir $(MATRIX_SUMMARY_DIR)
+	$(PYTHON) matrix_summary.py --runs-dir plots --suites $(SUMMARY_SUITES) --output-dir plots/summary
 
-run-matrix-with-summary: run-matrix matrix-summary
+run-matrix-with-summary:
+	@$(MAKE) run-matrix
+	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep
 
 run-matrix-maps-with-summary:
+	@$(MAKE) run-matrix
 	@$(MAKE) run-matrix-maps
-	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=results/maps MATRIX_SUMMARY_DIR=results/maps/summary
+	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep,maps

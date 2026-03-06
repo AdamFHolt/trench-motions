@@ -21,14 +21,15 @@
   - `workflow_common.py`
   - used by both `compute_rates_misfit.py` and `compute_rates_single.py`
 - Reorganized outputs:
-  - `results/param-sweep/`
-  - `results/maps/`
-  - `results/one-off/`
+  - `plots/<hs3|nnr|sa>/param-sweep/`
+  - `plots/<hs3|nnr|sa>/maps/`
+  - `plots/summary/param-sweep/`
+  - `plots/summary/maps/`
 - Removed results `tmp` outputs (temporary files now use OS temp dirs and are cleaned automatically).
 
 ## Minimal Daily Workflow
 1. Activate environment:
-   - `source .venv/bin/activate`
+   - `source env/bin/activate`
 2. Run canonical sweep + summary:
    - `make run-matrix-with-summary`
 3. (Optional) Run map workflow:
@@ -40,16 +41,17 @@
   - `data/`
   - `data/vt/`
 - Sweep results:
-  - `results/param-sweep/`
+  - `plots/<hs3|nnr|sa>/param-sweep/`
 - Map results:
-  - `results/maps/`
-- One-off runs:
-  - `results/one-off/`
+  - `plots/<hs3|nnr|sa>/maps/`
+- Summaries:
+  - `plots/summary/param-sweep/`
+  - `plots/summary/maps/`
 
 ## Suggested Next Steps (Science)
 1. Define a small set of parameter experiments to run first (per reference frame: `hs3`, `nnr`, `sa`).
 2. Compare summary outputs:
-   - `results/param-sweep/summary/matrix_summary.csv`
+   - `plots/summary/param-sweep/matrix_summary.csv`
    - `rmse_by_run.png`, `sign_match_by_run.png`
 3. Select best-fit cases and generate map products for interpretation.
 4. Add short interpretation notes (per reference frame) in a new markdown file for your student handoff.

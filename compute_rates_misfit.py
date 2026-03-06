@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
-import matplotlib
-matplotlib.use('Agg')
 import os, numpy as np
 import subprocess, sys, tempfile, shutil
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import yaml
 from functions import compute_vsp_withDP
+from plotting_functions import save_misfit_heatmap
 from workflow_common import get_vt_col, preprocess_data_table, build_segment_arrays, build_thermal_terms
-plt.ioff()
 
 
 def ensure_parent_dir(path):
@@ -133,7 +129,7 @@ if vt_ref_override:
 def out_path(relative_path):
 	if out_prefix:
 		return os.path.join(out_prefix, relative_path)
-	return os.path.join('results', 'one-off', relative_path)
+	return os.path.join('plots', vt_ref, 'maps', relative_path)
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
@@ -304,36 +300,15 @@ for k in range(0,len(lith_viscs)):
 print("------------")
 print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
 
-fig = plt.figure()
-
-ax = fig.add_subplot(211)
 if formulation == 2:
-	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, extent=[asth_visc_min, asth_visc_max, yield_min/1e6, yield_max/1e6], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/((yield_max/1e6)-(yield_min/1e6)))
-	ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-elif formulation == 1 or formulation == 7 or formulation == 8:
-	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, lith_visc_min, lith_visc_max], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/(lith_visc_max-lith_visc_min))
-	ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
+	signs_y_param = signs_yield_stress
+	rms_y_param = rms_yield_stress
+elif formulation in (1, 7, 8, 9):
+	signs_y_param = signs_lith_visc
+	rms_y_param = rms_lith_visc
 elif formulation == 3:
-	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, pre_min, pre_max], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/(pre_max-pre_min))
-	ax.set_ylabel("K")
-ax.text(0.07,0.88,"%s with correct sign" % ('%'),size=12.5, color="black",transform = ax.transAxes)
-plt.colorbar(im1)
-annot_string = ''.join(['best: ',str(num_sign_matches_max),'/',str(n),' signs, RMS = ',str("%.2f" % rms_min),' cm/yr']);
-plt.annotate(annot_string, xy=(0.035, 1.05), xycoords='axes fraction',verticalalignment='center',horizontalalignment='left',fontsize=7)
-
-ax = fig.add_subplot(212)
-if formulation == 2:
-	im2 = ax.imshow(rms,  cmap=cm.RdYlGn,  extent=[asth_visc_min, asth_visc_max, yield_min/1e6, yield_max/1e6], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/((yield_max/1e6)-(yield_min/1e6)))
-	ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-elif formulation == 1 or formulation == 7 or formulation == 8:
-	im2 = ax.imshow(rms,  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, lith_visc_min, lith_visc_max], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/(lith_visc_max-lith_visc_min))
-	ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
-elif formulation == 3:
-	im2 = ax.imshow(rms,  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, pre_min, pre_max], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/(pre_max-pre_min))
-	ax.set_ylabel("K")
-ax.set_xlabel("$\mathregular{\eta_{A}}$  [Pa.s]")
-ax.text(0.07,0.88,'RMS',size=12.5, color="black",transform = ax.transAxes)
-plt.colorbar(im2)
+	signs_y_param = signs_pre
+	rms_y_param = rms_pre
 
 if include_DP == 0:
 	DP_string=''
@@ -346,34 +321,53 @@ else:
 	RP_string = ''
 
 if formulation == 1:  # viscous bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3: # just slab pull (with prefactor)
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
 elif formulation == 7:  # regular, hSP \propto LSP
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 elif formulation == 8:  # regular, hSP \propto VSP
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 elif formulation == 9:  # regular, with OP drag
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
+	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = out_path(plot_name)
 signs_name = out_path(signs_name)
 rms_name = out_path(rms_name)
-ensure_parent_dir(plot_name)
-plt.savefig(plot_name, bbox_inches='tight',dpi=400)
+save_misfit_heatmap(
+	sign=sign,
+	rms=rms,
+	n=n,
+	formulation=formulation,
+	asth_visc_min=asth_visc_min,
+	asth_visc_max=asth_visc_max,
+	lith_visc_min=lith_visc_min,
+	lith_visc_max=lith_visc_max,
+	yield_min=yield_min,
+	yield_max=yield_max,
+	pre_min=pre_min,
+	pre_max=pre_max,
+	signs_asthen_visc=signs_asthen_visc,
+	signs_y_param=signs_y_param,
+	rms_asthen_visc=rms_asthen_visc,
+	rms_y_param=rms_y_param,
+	num_sign_matches_max=num_sign_matches_max,
+	rms_min=rms_min,
+	output_path=plot_name,
+)
 
 # plot map
 signs_txt_name=''.join([signs_name,'.txt'])

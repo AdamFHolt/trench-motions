@@ -119,7 +119,7 @@ while i < len(extra_args):
 def out_path(relative_path):
 	if out_prefix:
 		return os.path.join(out_prefix, relative_path)
-	return os.path.join('results', 'one-off', relative_path)
+	return os.path.join('plots', vt_ref, 'maps', relative_path)
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
@@ -259,14 +259,14 @@ else:
 	RP_string = ''
 
 if formulation == 1:  # viscous bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3: # just slab pull (with prefactor)
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
+	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
 plot_name = out_path(plot_name)
 rms_name = out_path(rms_name)
 ensure_parent_dir(plot_name)
