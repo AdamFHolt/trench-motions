@@ -24,10 +24,10 @@ SINGLE_CONFIG ?= configs/single_smoke.yaml
 MATRIX_CONFIG ?= configs/matrix.yaml
 MATRIX_MAP_CONFIG ?= configs/matrix_maps.yaml
 REF_FRAMES ?= hs3 nnr sa
-MATRIX_RUNS_DIR ?= results/matrix
-MATRIX_SUMMARY_DIR ?= results/matrix/summary
+MATRIX_RUNS_DIR ?= results/param-sweep
+MATRIX_SUMMARY_DIR ?= results/param-sweep/summary
 
-.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary run-matrix-maps-with-summary quick-plot test
+.PHONY: venv install smoke single-smoke smoke-config single-smoke-config run-matrix run-matrix-smoke run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-smoke-with-summary run-matrix-maps-with-summary quick-plot
 venv:
 	$(PYTHON) -m venv $(VENV_DIR)
 
@@ -75,7 +75,7 @@ run-matrix-smoke:
 run-matrix-maps:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix-maps] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix results/matrix_maps/$$ref || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix results/maps/$$ref || exit $$?; \
 	done
 
 matrix-summary:
@@ -87,7 +87,7 @@ run-matrix-smoke-with-summary: run-matrix-smoke matrix-summary
 
 run-matrix-maps-with-summary:
 	@$(MAKE) run-matrix-maps
-	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=results/matrix_maps MATRIX_SUMMARY_DIR=results/matrix_maps/summary
+	@$(MAKE) matrix-summary MATRIX_RUNS_DIR=results/maps MATRIX_SUMMARY_DIR=results/maps/summary
 
 quick-plot:
 	$(PYTHON) quick_plot.py \
@@ -95,6 +95,3 @@ quick-plot:
 		--observed $(QUICK_OBSERVED) \
 		--output $(QUICK_OUTPUT) \
 		--title "$(QUICK_TITLE)"
-
-test:
-	$(PYTHON) -m unittest discover -s tests -v

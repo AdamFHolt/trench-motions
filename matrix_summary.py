@@ -108,8 +108,8 @@ def plot_metric_bar(rows, metric_key, ylabel, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description='Summarize matrix run outputs into tables and plots.')
-    parser.add_argument('--runs-dir', default='results/matrix', help='Root directory containing matrix run outputs.')
-    parser.add_argument('--output-dir', default='results/matrix/summary', help='Directory for summary CSV/plots.')
+    parser.add_argument('--runs-dir', default='results/param-sweep', help='Root directory containing matrix run outputs.')
+    parser.add_argument('--output-dir', default='results/param-sweep/summary', help='Directory for summary CSV/plots.')
     parser.add_argument('--tol', type=float, default=0.1, help='Coordinate rounding tolerance in degrees.')
     parser.add_argument('--neutral', type=float, default=0.3, help='Neutral sign threshold in cm/yr.')
     args = parser.parse_args()

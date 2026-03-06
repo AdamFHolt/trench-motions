@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import os, numpy as np
-import subprocess, sys
+import subprocess, sys, tempfile, shutil
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import yaml
@@ -133,7 +133,7 @@ if vt_ref_override:
 def out_path(relative_path):
 	if out_prefix:
 		return os.path.join(out_prefix, relative_path)
-	return os.path.join('results', relative_path)
+	return os.path.join('results', 'manual', relative_path)
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
@@ -380,15 +380,8 @@ signs_txt_name=''.join([signs_name,'.txt'])
 rms_txt_name=''.join([rms_name,'.txt'])
 ensure_parent_dir(signs_txt_name)
 ensure_parent_dir(rms_txt_name)
-tmp_dir = out_path('tmp')
-if not os.path.isdir(tmp_dir):
-	os.makedirs(tmp_dir)
-signs_sep_base = os.path.join(tmp_dir, 'signs_separated')
-rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
 np.savetxt(signs_txt_name, signs_predicted_vts, fmt='%.4f')  
 np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
-np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')  
-np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')  
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 if skip_map:
@@ -408,6 +401,14 @@ if skip_map:
 else:
 	FNULL = open(os.devnull, 'w')
 	print("plotting map")
-	subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,signs_sep_base,'0'],stdout=FNULL, stderr=subprocess.STDOUT)
-	subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,rms_sep_base,'1'],stdout=FNULL, stderr=subprocess.STDOUT)
+	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
+	signs_sep_base = os.path.join(tmp_dir, 'signs_separated')
+	rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
+	np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')
+	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
+	try:
+		subprocess.check_call(['./plot_trench_motions.sh',signs_name,vt_observed,signs_sep_base,'0'],stdout=FNULL, stderr=subprocess.STDOUT)
+		subprocess.check_call(['./plot_trench_motions.sh',rms_name,vt_observed,rms_sep_base,'1'],stdout=FNULL, stderr=subprocess.STDOUT)
+	finally:
+		shutil.rmtree(tmp_dir, ignore_errors=True)
 print("output: %s" % plot_name)

@@ -18,9 +18,9 @@ make run-matrix-smoke-with-summary
 ```
 
 3. Look at results:
-- Sweep products: `results/matrix/...`
-- Summary table: `results/matrix/summary/matrix_summary.csv`
-- Summary plots: `results/matrix/summary/*.png`
+- Sweep products: `results/param-sweep/...`
+- Summary table: `results/param-sweep/summary/matrix_summary.csv`
+- Summary plots: `results/param-sweep/summary/*.png`
 
 4. Optional full-size sweep (slower):
 ```bash
@@ -42,7 +42,10 @@ make run-matrix-maps-with-summary
 
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
-- Active outputs: `results/`.
+- Active outputs:
+  - `results/param-sweep/` for parameter sweeps + summaries.
+  - `results/maps/` for map-producing matrix runs.
+  - `results/manual/` for direct one-off script runs without `--out-prefix`.
 - Archived generated outputs: `archive/generated/`.
 - Archived reference files: `archive/reference/`.
 - Archived legacy scripts: `archive/legacy/`.
@@ -148,7 +151,7 @@ Shared matrix config files:
 - `configs/matrix.yaml` (skip-map true)
 - `configs/matrix_maps.yaml` (skip-map false)
 
-Batch matrix summary tables/plots from `results/matrix/*`:
+Batch matrix summary tables/plots from `results/param-sweep/*`:
 ```bash
 make matrix-summary
 ```
