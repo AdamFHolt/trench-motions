@@ -90,7 +90,7 @@ else:
 	main_args = args_wo_config[:6]
 	extra_args = args_wo_config[6:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, hSP \propto LSP, 5 = regular, hSP \propto VSP, 6 = regular with OP
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP, 4 = regular, hSP \propto VSP, 5 = regular with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	asthen_visc = float(main_args[4])
@@ -118,16 +118,27 @@ while i < len(extra_args):
 
 
 def out_path(relative_path):
-	if out_prefix:
-		return os.path.join(out_prefix, relative_path)
-	return os.path.join('plots', vt_ref, 'maps', relative_path)
+	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
+	return os.path.join(base_ref_dir, formulation_slug(formulation), 'maps', relative_path)
 
 
 def misfit_plot_out_path(filename):
-	if out_prefix and os.path.basename(out_prefix) == 'maps':
-		base_dir = os.path.dirname(out_prefix)
-		return os.path.join(base_dir, 'param-sweep', filename)
-	return out_path(filename)
+	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
+	return os.path.join(base_ref_dir, formulation_slug(formulation), 'param-sweep', filename)
+
+
+def formulation_slug(formulation_id):
+	if formulation_id == 1:
+		return 'viscous'
+	if formulation_id == 2:
+		return 'plastic'
+	if formulation_id == 3:
+		return 'viscous_LspShear'
+	if formulation_id == 4:
+		return 'viscous_VspShear'
+	if formulation_id == 5:
+		return 'viscous_ShearOP'
+	raise ValueError("unsupported formulation: {}".format(formulation_id))
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
@@ -137,7 +148,7 @@ if include_DP not in [0, 1]:
 	print("include_DP must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3, 4, 5, 6]:
+if formulation not in [1, 2, 3, 4, 5]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -172,7 +183,6 @@ rho0 = 3300.; rhoW = 1000.
 lith_visc_min = 20; lith_visc_max = 25
 asth_visc_min = 17; asth_visc_max = 22
 yield_min = 100e6; 	yield_max = 10000e6;
-pre_min = 0.0; 		pre_max = 1.0;
 
 
 # DP stuff (SI units), used in all active formulations
@@ -240,7 +250,6 @@ if rms_act < rms_min:
 	rms_lith_visc = np.log10(visc_lith);
 	rms_asthen_visc = np.log10(visc_asthen);
 	rms_yield_stress = yield_sigma/1e6;
-	rms_pre = pre;
 	rms_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
 	rms_separated = np.concatenate((latlon,stored_rms_vals), axis=1)
 	vsps = np.concatenate((latlon,vsp_estimate), axis=1)
@@ -268,16 +277,13 @@ if formulation == 1:  # viscous bending
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
-elif formulation == 3: # just slab pull (with prefactor)
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
-elif formulation == 4:  # regular, hSP \propto LSP
+elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
-elif formulation == 5:  # regular, hSP \propto VSP
+elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-elif formulation == 6:  # regular, with OP drag
+elif formulation == 5:  # regular, with OP drag
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = misfit_plot_out_path(plot_name)

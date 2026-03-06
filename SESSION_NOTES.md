@@ -9,8 +9,9 @@
 
 ## Key Refactors Completed
 - Removed legacy power-law mode from active workflow and core implementation.
-- Retooled active formulation numbering to a contiguous set:
-  - `1..6` (old `7/8/9` remapped to new `4/5/6`)
+- Retooled active formulation numbering to a contiguous active set:
+  - active set is now `1..5` (`3/4/5` correspond to former `4/5/6`)
+- Removed slab-pull-prefactor case from active workflow and core implementation.
 - Removed `PSP_slab_pull_factor` from:
   - CLI args
   - configs
@@ -36,8 +37,8 @@
   - `gmt.conf`
   - `gmt.history`
 - Reorganized outputs:
-  - `plots/<hs3|nnr|sa>/param-sweep/`
-  - `plots/<hs3|nnr|sa>/maps/`
+  - `plots/<hs3|nnr|sa>/<viscous|plastic|viscous_LspShear|viscous_VspShear|viscous_ShearOP>/param-sweep/`
+  - `plots/<hs3|nnr|sa>/<viscous|plastic|viscous_LspShear|viscous_VspShear|viscous_ShearOP>/maps/`
   - `plots/summary/`
 - Removed results `tmp` outputs (temporary files now use OS temp dirs and are cleaned automatically).
 
@@ -54,11 +55,20 @@
   - `data/`
   - `data/vt/`
 - Sweep results:
-  - `plots/<hs3|nnr|sa>/param-sweep/`
+  - `plots/<hs3|nnr|sa>/<model>/param-sweep/`
 - Map results:
-  - `plots/<hs3|nnr|sa>/maps/`
+  - `plots/<hs3|nnr|sa>/<model>/maps/`
 - Combined summary outputs:
   - `plots/summary/`
+
+## Latest Run Results (Viscous, Formulation 1)
+- Executed full viscous runs (with maps) for all reference frames using `configs/run_params.yaml` (`DP_ref=2.35e7`, `include_ridge_push=1`):
+  - `hs3`: minimum RMS `4.01 cm/yr`, signs `70/120`
+  - `nnr`: minimum RMS `2.27 cm/yr`, signs `94/120`
+  - `sa`: minimum RMS `3.08 cm/yr`, signs `84/120`
+- Current generated structure is consistent across all refs:
+  - `plots/<hs3|nnr|sa>/viscous/param-sweep/`
+  - `plots/<hs3|nnr|sa>/viscous/maps/`
 
 ## Suggested Next Steps (Science)
 1. Define a small set of parameter experiments to run first (per reference frame: `hs3`, `nnr`, `sa`).

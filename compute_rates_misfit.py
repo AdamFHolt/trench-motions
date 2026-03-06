@@ -84,8 +84,8 @@ else:
 	main_args = args_wo_config[:5]
 	extra_args = args_wo_config[5:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, hSP \propto LSP, 5 = regular, hSP \propto VSP
-											# 6 = regular, with OP
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP, 4 = regular, hSP \propto VSP
+											# 5 = regular, with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
@@ -126,17 +126,23 @@ if vt_ref_override:
 	vt_ref = vt_ref_override
 
 
-def out_path(relative_path):
-	if out_prefix:
-		return os.path.join(out_prefix, relative_path)
-	return os.path.join('plots', vt_ref, 'maps', relative_path)
+def formulation_slug(formulation_id):
+	if formulation_id == 1:
+		return 'viscous'
+	if formulation_id == 2:
+		return 'plastic'
+	if formulation_id == 3:
+		return 'viscous_LspShear'
+	if formulation_id == 4:
+		return 'viscous_VspShear'
+	if formulation_id == 5:
+		return 'viscous_ShearOP'
+	raise ValueError("unsupported formulation: {}".format(formulation_id))
 
 
-def misfit_plot_out_path(filename):
-	if out_prefix and os.path.basename(out_prefix) == 'maps':
-		base_dir = os.path.dirname(out_prefix)
-		return os.path.join(base_dir, 'param-sweep', filename)
-	return out_path(filename)
+def suite_out_path(suite, relative_path):
+	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
+	return os.path.join(base_ref_dir, formulation_slug(formulation), suite, relative_path)
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
@@ -150,7 +156,7 @@ if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3, 4, 5, 6]:
+if formulation not in [1, 2, 3, 4, 5]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -183,7 +189,6 @@ rho0 = 3300.; rhoW = 1000.
 lith_visc_min = 20; lith_visc_max = 25
 asth_visc_min = 17; asth_visc_max = 22
 yield_min = 100e6; 	yield_max = 10000e6;
-pre_min = 0.0; 		pre_max = 1.0;
 
 # DP stuff (SI units), used in all active formulations
 visc_asthen_ref =  3e20
@@ -197,18 +202,15 @@ if smoke_mode:
 asthen_viscs = np.linspace(asth_visc_min,asth_visc_max,num_grid)
 lith_viscs = np.linspace(lith_visc_min,lith_visc_max,num_grid)
 yield_stresses = np.linspace(yield_min,yield_max,num_grid)
-prefactors = np.linspace(pre_min,pre_max,num_grid)
 asthen_visc = np.zeros((len(lith_viscs),len(asthen_viscs)))
 lith_visc = np.zeros((len(lith_viscs),len(asthen_viscs)))
 yield_stress = np.zeros((len(yield_stresses),len(asthen_viscs)))
-pre_values = np.zeros((len(prefactors),len(asthen_viscs)))
 rms = np.zeros((len(lith_viscs),len(asthen_viscs)))
 sign = np.zeros((len(lith_viscs),len(asthen_viscs)))
 for i in range(0,len(lith_viscs)):
 	asthen_visc[i,:] = asthen_viscs[:];
 	lith_visc[:,i] = lith_viscs[:];
 	yield_stress[:,i] = yield_stresses[:];
-	pre_values[:,i] = prefactors[:]
 
 data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.txt'
 data = np.genfromtxt(data_name) # see spreadsheet for column details
@@ -252,10 +254,10 @@ for k in range(0,len(lith_viscs)):
 		visc_asthen = 10**asthen_visc[k,j];
 		visc_lith = 10**lith_visc[k,j];
 		yield_sigma = yield_stress[k,j]; 
-		pre = pre_values[k,j]
+		pre = 1.0
 
-		# formulation 5 requires per-segment nonlinear solve
-		if formulation == 5:
+		# formulation 4 requires per-segment nonlinear solve
+		if formulation == 4:
 			vsp_estimate=np.zeros((num,1));
 			for i in range(0,len(vt_actual)):
 				vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
@@ -287,7 +289,6 @@ for k in range(0,len(lith_viscs)):
 			rms_lith_visc = np.log10(visc_lith);
 			rms_asthen_visc = np.log10(visc_asthen);
 			rms_yield_stress = yield_sigma/1e6;
-			rms_pre = pre;
 			rms_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
 			rms_separated = np.concatenate((latlon,stored_rms_vals), axis=1)
 
@@ -296,7 +297,6 @@ for k in range(0,len(lith_viscs)):
 			signs_lith_visc = np.log10(visc_lith);
 			signs_asthen_visc = np.log10(visc_asthen);
 			signs_yield_stress = yield_sigma/1e6;
-			signs_pre = pre;
 			signs_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
 			signs_separated = np.concatenate((latlon,stored_sign_vals), axis=1)
 
@@ -306,12 +306,9 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 if formulation == 2:
 	signs_y_param = signs_yield_stress
 	rms_y_param = rms_yield_stress
-elif formulation in (1, 4, 5, 6):
+elif formulation in (1, 3, 4, 5):
 	signs_y_param = signs_lith_visc
 	rms_y_param = rms_lith_visc
-elif formulation == 3:
-	signs_y_param = signs_pre
-	rms_y_param = rms_pre
 
 if include_DP == 0:
 	DP_string=''
@@ -331,25 +328,21 @@ elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
-elif formulation == 3: # just slab pull (with prefactor)
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.just-slab-pull.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
-elif formulation == 4:  # regular, hSP \propto LSP
+elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
-elif formulation == 5:  # regular, hSP \propto VSP
+elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-elif formulation == 6:  # regular, with OP drag
+elif formulation == 5:  # regular, with OP drag
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
-plot_name = misfit_plot_out_path(plot_name)
-signs_name = out_path(signs_name)
-rms_name = out_path(rms_name)
+plot_name = suite_out_path('param-sweep', plot_name)
+signs_name = suite_out_path('maps', signs_name)
+rms_name = suite_out_path('maps', rms_name)
 save_misfit_heatmap(
 	sign=sign,
 	rms=rms,
@@ -361,8 +354,6 @@ save_misfit_heatmap(
 	lith_visc_max=lith_visc_max,
 	yield_min=yield_min,
 	yield_max=yield_max,
-	pre_min=pre_min,
-	pre_max=pre_max,
 	signs_asthen_visc=signs_asthen_visc,
 	signs_y_param=signs_y_param,
 	rms_asthen_visc=rms_asthen_visc,

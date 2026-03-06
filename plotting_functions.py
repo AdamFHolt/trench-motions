@@ -461,8 +461,6 @@ def save_misfit_heatmap(
     lith_visc_max,
     yield_min,
     yield_max,
-    pre_min,
-    pre_max,
     signs_asthen_visc,
     signs_y_param,
     rms_asthen_visc,
@@ -484,7 +482,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 7, 8, 9):
+    elif formulation in (1, 3, 4, 5):
         im1 = ax.imshow(
             100.0 * (sign / n),
             cmap=cm.RdYlGn,
@@ -495,17 +493,6 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / (lith_visc_max - lith_visc_min),
         )
         ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
-    elif formulation == 3:
-        im1 = ax.imshow(
-            100.0 * (sign / n),
-            cmap=cm.RdYlGn,
-            origin='lower',
-            extent=[asth_visc_min, asth_visc_max, pre_min, pre_max],
-            vmax=100.0,
-            vmin=60.0,
-            aspect=(asth_visc_max - asth_visc_min) / (pre_max - pre_min),
-        )
-        ax.set_ylabel("K")
     else:
         raise ValueError("Unsupported formulation for plotting: {}".format(formulation))
 
@@ -544,7 +531,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 7, 8, 9):
+    elif formulation in (1, 3, 4, 5):
         im2 = ax.imshow(
             rms,
             cmap=cm.RdYlGn,
@@ -555,17 +542,6 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / (lith_visc_max - lith_visc_min),
         )
         ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
-    elif formulation == 3:
-        im2 = ax.imshow(
-            rms,
-            cmap=cm.RdYlGn,
-            origin='lower',
-            extent=[asth_visc_min, asth_visc_max, pre_min, pre_max],
-            vmax=10.0,
-            vmin=0.0,
-            aspect=(asth_visc_max - asth_visc_min) / (pre_max - pre_min),
-        )
-        ax.set_ylabel("K")
     else:
         raise ValueError("Unsupported formulation for plotting: {}".format(formulation))
 

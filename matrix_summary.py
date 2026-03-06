@@ -143,7 +143,9 @@ def main():
     pred_files = []
     file_suite = {}
     for suite in suites:
-        suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', suite, 'rms_*.txt')))
+        suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', '*', suite, 'rms_*.txt')))
+        if not suite_files:
+            suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', suite, 'rms_*.txt')))
         for p in suite_files:
             pred_files.append(p)
             file_suite[p] = suite
@@ -154,7 +156,8 @@ def main():
     for pred_path in pred_files:
         rel = os.path.relpath(pred_path, args.runs_dir)
         parts = rel.split(os.sep)
-        suite = file_suite.get(pred_path, parts[1] if len(parts) > 1 else 'unknown')
+        suite = file_suite.get(pred_path, parts[-2] if len(parts) > 1 else 'unknown')
+        model = parts[-3] if len(parts) > 2 else ''
         vt_ref = args.vt_ref if args.vt_ref else (parts[0] if len(parts) > 0 else detect_vt_ref_from_name(os.path.basename(pred_path)))
         if vt_ref not in ('hs3', 'nnr', 'sa'):
             vt_ref = detect_vt_ref_from_name(os.path.basename(pred_path))
@@ -168,17 +171,19 @@ def main():
         row = {
             'suite': suite,
             'vt_ref': vt_ref,
+            'model': model,
             'predicted_file': pred_path,
         }
         row.update(metrics)
         rows.append(row)
 
-    rows.sort(key=lambda r: (r['suite'], r['vt_ref']))
+    rows.sort(key=lambda r: (r['suite'], r['vt_ref'], r['model']))
 
     csv_path = os.path.join(args.output_dir, 'matrix_summary.csv')
     fields = [
         'suite',
         'vt_ref',
+        'model',
         'n',
         'rmse_cm_yr',
         'mae_cm_yr',

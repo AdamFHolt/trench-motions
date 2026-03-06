@@ -17,13 +17,13 @@ install:
 run-matrix:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --skip-map --out-prefix plots/$$ref/param-sweep || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --skip-map --out-prefix plots/$$ref || exit $$?; \
 	done
 
 run-matrix-maps:
 	@for ref in $(REF_FRAMES); do \
 		echo "[matrix-maps] $$ref"; \
-		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref/maps || exit $$?; \
+		$(PYTHON) compute_rates_misfit.py --config $(RUN_CONFIG) --vt-ref $$ref --out-prefix plots/$$ref || exit $$?; \
 	done
 
 matrix-summary:

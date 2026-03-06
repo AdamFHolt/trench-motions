@@ -18,7 +18,8 @@ make run-matrix-with-summary
 ```
 
 3. Look at results:
-- Sweep products: `plots/<hs3|nnr|sa>/param-sweep/...`
+- Sweep products: `plots/<hs3|nnr|sa>/<model>/param-sweep/...`
+- Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/...`
 - Sweep summary table: `plots/summary/param-sweep/matrix_summary.csv`
 - Sweep summary plots: `plots/summary/param-sweep/*.png`
 
@@ -43,10 +44,10 @@ make run-matrix-maps-with-summary
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
 - Active outputs:
-  - `plots/hs3/param-sweep/`, `plots/nnr/param-sweep/`, `plots/sa/param-sweep/` for parameter sweeps.
-  - `plots/hs3/maps/`, `plots/nnr/maps/`, `plots/sa/maps/` for map-producing runs.
+  - `plots/<hs3|nnr|sa>/<model>/param-sweep/` for parameter sweeps.
+  - `plots/<hs3|nnr|sa>/<model>/maps/` for map products and predicted trench-motion tables.
   - `plots/summary/param-sweep/` and `plots/summary/maps/` for summary products.
-  - direct script runs without `--out-prefix` write under `plots/<vt_ref>/maps/`.
+  - direct script runs without `--out-prefix` write under `plots/<vt_ref>/<model>/...`.
 - Archived generated outputs: `archive/generated/`.
 - Archived reference files: `archive/reference/`.
 - Archived legacy scripts: `archive/legacy/`.
