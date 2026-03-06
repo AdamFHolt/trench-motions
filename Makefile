@@ -23,14 +23,9 @@ QUICK_TITLE ?= Manual quick check
 
 MISFIT_CONFIG ?= configs/misfit_smoke.yaml
 SINGLE_CONFIG ?= configs/single_smoke.yaml
-MATRIX_CONFIGS ?= \
-	configs/matrix/linear_hs3.yaml \
-	configs/matrix/linear_nnr.yaml \
-	configs/matrix/linear_sa.yaml
-MATRIX_MAP_CONFIGS ?= \
-	configs/matrix_maps/linear_hs3.yaml \
-	configs/matrix_maps/linear_nnr.yaml \
-	configs/matrix_maps/linear_sa.yaml
+MATRIX_CONFIG ?= configs/matrix.yaml
+MATRIX_MAP_CONFIG ?= configs/matrix_maps.yaml
+REF_FRAMES ?= hs3 nnr sa
 MATRIX_RUNS_DIR ?= results/matrix
 MATRIX_SUMMARY_DIR ?= results/matrix/summary
 
@@ -70,21 +65,21 @@ single-smoke-config:
 	$(PYTHON) compute_rates_single.py --config $(SINGLE_CONFIG)
 
 run-matrix:
-	@for cfg in $(MATRIX_CONFIGS); do \
-		echo "[matrix] $$cfg"; \
-		$(PYTHON) compute_rates_misfit.py --config $$cfg || exit $$?; \
+	@for ref in $(REF_FRAMES); do \
+		echo "[matrix] $$ref"; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix $(MATRIX_RUNS_DIR)/$$ref || exit $$?; \
 	done
 
 run-matrix-smoke:
-	@for cfg in $(MATRIX_CONFIGS); do \
-		echo "[matrix-smoke] $$cfg"; \
-		$(PYTHON) compute_rates_misfit.py --config $$cfg --smoke || exit $$?; \
+	@for ref in $(REF_FRAMES); do \
+		echo "[matrix-smoke] $$ref"; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_CONFIG) --vt-ref $$ref --out-prefix $(MATRIX_RUNS_DIR)/$$ref --smoke || exit $$?; \
 	done
 
 run-matrix-maps:
-	@for cfg in $(MATRIX_MAP_CONFIGS); do \
-		echo "[matrix-maps] $$cfg"; \
-		$(PYTHON) compute_rates_misfit.py --config $$cfg || exit $$?; \
+	@for ref in $(REF_FRAMES); do \
+		echo "[matrix-maps] $$ref"; \
+		$(PYTHON) compute_rates_misfit.py --config $(MATRIX_MAP_CONFIG) --vt-ref $$ref --out-prefix results/matrix_maps/$$ref || exit $$?; \
 	done
 
 matrix-summary:

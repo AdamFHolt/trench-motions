@@ -144,6 +144,10 @@ export DATASETS_DIR=/path/to/datasets
 make run-matrix-maps
 ```
 
+Shared matrix config files:
+- `configs/matrix.yaml` (skip-map true)
+- `configs/matrix_maps.yaml` (skip-map false)
+
 Batch matrix summary tables/plots from `results/matrix/*`:
 ```bash
 make matrix-summary
@@ -174,7 +178,7 @@ python3 quick_plot.py --predicted <predicted_txt> --observed data/vt/tnew.sa.dat
 - `compute_rates_misfit.py` positional args:
   `vt_ref formulation include_DP DP_ref PSP_slab_pull_factor include_ridge_push`
 - `compute_rates_misfit.py` optional flags:
-  `--smoke --skip-map --out-prefix <dir> --config <path.yaml>`
+  `--smoke --skip-map --out-prefix <dir> --config <path.yaml> --vt-ref <hs3|nnr|sa>`
 - `compute_rates_single.py` positional args:
   `vt_ref formulation include_DP DP_ref PSP_slab_pull_factor asthen_visc lith_visc`
 - `compute_rates_single.py` optional flags:

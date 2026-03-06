@@ -1,8 +1,0 @@
-vt_ref: sa
-formulation: 1
-include_DP: 1
-DP_ref: 2.35e7
-PSP_slab_pull_factor: 0.25
-include_ridge_push: 1
-skip_map: false
-out_prefix: results/matrix_maps/linear/sa

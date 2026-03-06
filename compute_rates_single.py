@@ -60,10 +60,6 @@ if '--config' in args_wo_config:
 		sys.exit(2)
 
 if cfg:
-	if any(not a.startswith('--') for a in args_wo_config):
-		print("Unexpected positional arguments when using --config")
-		print(USAGE)
-		sys.exit(2)
 	missing_keys = [
 		k for k in [
 			'vt_ref',

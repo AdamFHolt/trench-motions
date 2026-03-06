@@ -117,7 +117,7 @@ def main():
     ensure_dir(args.output_dir)
     decimals = max(0, int(round(-np.log10(args.tol)))) if args.tol < 1 else 0
 
-    pred_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', '*', 'predictions', 'rms_*.txt')))
+    pred_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', 'predictions', 'rms_*.txt')))
     if not pred_files:
         raise SystemExit('No matrix prediction files found under {}'.format(args.runs_dir))
 
@@ -125,8 +125,8 @@ def main():
     for pred_path in pred_files:
         rel = os.path.relpath(pred_path, args.runs_dir)
         parts = rel.split(os.sep)
-        suite = parts[0] if len(parts) > 0 else 'unknown_suite'
-        vt_ref = parts[1] if len(parts) > 1 else detect_vt_ref_from_name(os.path.basename(pred_path))
+        suite = 'matrix'
+        vt_ref = parts[0] if len(parts) > 0 else detect_vt_ref_from_name(os.path.basename(pred_path))
         if vt_ref not in ('hs3', 'nnr', 'sa'):
             vt_ref = detect_vt_ref_from_name(os.path.basename(pred_path))
         if vt_ref not in ('hs3', 'nnr', 'sa'):

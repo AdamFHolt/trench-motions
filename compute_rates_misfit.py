@@ -19,7 +19,7 @@ def ensure_parent_dir(path):
 
 USAGE = """Usage:
   python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <PSP_slab_pull_factor> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
-  python3 compute_rates_misfit.py --config <path.yaml> [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
@@ -30,6 +30,7 @@ Arguments:
   include_ridge_push    0 | 1
 
 Optional flags:
+  --vt-ref <hs3|nnr|sa>  Override vt_ref (mainly for shared configs).
   --smoke     Use a small 3x3 parameter grid for fast checks.
   --skip-map  Skip GMT map plotting subprocess calls.
   --out-prefix <dir>  Write generated outputs under a custom base directory.
@@ -59,13 +60,8 @@ if '--config' in args_wo_config:
 		sys.exit(2)
 
 if cfg:
-	if any(not a.startswith('--') for a in args_wo_config):
-		print("Unexpected positional arguments when using --config")
-		print(USAGE)
-		sys.exit(2)
 	missing_keys = [
 		k for k in [
-			'vt_ref',
 			'formulation',
 			'include_DP',
 			'DP_ref',
@@ -77,7 +73,7 @@ if cfg:
 	if missing_keys:
 		print("Missing config keys: %s" % ", ".join(missing_keys))
 		sys.exit(2)
-	vt_ref = str(cfg['vt_ref'])
+	vt_ref = str(cfg.get('vt_ref', ''))
 	formulation = int(cfg['formulation'])
 	include_DP = int(cfg['include_DP'])
 	DP_ref = float(cfg['DP_ref'])
@@ -105,9 +101,17 @@ else:
 	out_prefix = ''
 
 i = 0
+vt_ref_override = None
 while i < len(extra_args):
 	arg = extra_args[i]
-	if arg == '--smoke':
+	if arg == '--vt-ref':
+		if i + 1 >= len(extra_args):
+			print("Missing value for --vt-ref")
+			print(USAGE)
+			sys.exit(2)
+		vt_ref_override = str(extra_args[i + 1])
+		i += 2
+	elif arg == '--smoke':
 		smoke_mode = True
 		i += 1
 	elif arg == '--skip-map':
@@ -124,6 +128,9 @@ while i < len(extra_args):
 		print("Unknown argument: %s" % arg)
 		print(USAGE)
 		sys.exit(2)
+
+if vt_ref_override:
+	vt_ref = vt_ref_override
 
 
 def out_path(relative_path):
