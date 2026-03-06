@@ -159,8 +159,6 @@ if formulation not in [1, 2, 3, 7, 8, 9]:
 	print(USAGE)
 	sys.exit(2)
 
-trans_strain_rate = 1.0e-13
-
 # calculation parameters
 include_PSP_interactions = 0    # include simple parameterization of PSP force transmission?
 calc_slabL_using_dip = 1 		# 0 = take down-dip slab length from table, 1 = calculate it from dip and slabD
@@ -337,16 +335,16 @@ for k in range(0,len(lith_viscs)):
 			for i in range(0,len(vt_actual)):
 				if include_DP == 1:
 					vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
-						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,1,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
+						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,pre,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
 				else:
 					print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
 					sys.exit(1)
 
-		# non power-law			
+		# vectorized solve for standard formulations
 		else:
 			if include_DP == 1:
 				vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,1,external_force_factor,PSP_force_transmitted,ride_push,Lop)
+					w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 			else:
 				print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
 				sys.exit(1)

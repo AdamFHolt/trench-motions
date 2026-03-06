@@ -141,8 +141,6 @@ if formulation not in [1, 2, 3]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
-composite = 0
-trans_strain_rate = 1.0e-13
 
 
 # calculation parameters
@@ -299,10 +297,9 @@ for k in range(0,1):
 
 		if include_DP == 1:
 			vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-				w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push,Lop)
+				w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 		else:
 			sys.exit(1)
-			# vsp_estimate = compute_vsp(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,dip,oceanic_buoy,yield_sigma,trans_strain_rate,n,pre)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
