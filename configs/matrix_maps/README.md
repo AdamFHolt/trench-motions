@@ -1,6 +1,6 @@
 # Matrix Map Configs
 
-This config set mirrors `configs/matrix/` but enables GMT map generation.
+This config set mirrors `configs/matrix/` (linear suite) but enables GMT map generation.
 
 Differences:
 - `skip_map: false`

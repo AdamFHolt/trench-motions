@@ -18,7 +18,7 @@ def ensure_parent_dir(path):
 
 
 USAGE = """Usage:
-  python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <trans_strain_rate> <PSP_slab_pull_factor> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <PSP_slab_pull_factor> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
   python3 compute_rates_misfit.py --config <path.yaml> [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
@@ -26,7 +26,6 @@ Arguments:
   formulation           integer model id
   include_DP            0 | 1
   DP_ref                float (Pa)
-  trans_strain_rate     float (s^-1)
   PSP_slab_pull_factor  float
   include_ridge_push    0 | 1
 
@@ -70,7 +69,6 @@ if cfg:
 			'formulation',
 			'include_DP',
 			'DP_ref',
-			'trans_strain_rate',
 			'PSP_slab_pull_factor',
 			'include_ridge_push',
 		]
@@ -83,7 +81,6 @@ if cfg:
 	formulation = int(cfg['formulation'])
 	include_DP = int(cfg['include_DP'])
 	DP_ref = float(cfg['DP_ref'])
-	trans_strain_rate = float(cfg['trans_strain_rate'])
 	PSP_slab_pull_factor = float(cfg['PSP_slab_pull_factor'])
 	include_ridge_push = int(cfg['include_ridge_push'])
 	extra_args = args_wo_config
@@ -91,20 +88,18 @@ if cfg:
 	skip_map = bool(cfg.get('skip_map', False))
 	out_prefix = str(cfg.get('out_prefix', ''))
 else:
-	if len(args_wo_config) < 7:
+	if len(args_wo_config) < 6:
 		print(USAGE)
 		sys.exit(2)
-	main_args = args_wo_config[:7]
-	extra_args = args_wo_config[7:]
+	main_args = args_wo_config[:6]
+	extra_args = args_wo_config[6:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, \
-											# 5 = plastic, power-law, 6 = pre-factor, power-law, 7 = regular, hSP \propto LSP, 8 = regular, hSP \propto V4SP
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 7 = regular, hSP \propto LSP, 8 = regular, hSP \propto V4SP
 											# 9 = regular, with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-	trans_strain_rate=float(main_args[4]) 	# typical value: 1e-13 s-1
-	PSP_slab_pull_factor=float(main_args[5]) 	
-	include_ridge_push=int(main_args[6]) 	# 0 = no ridge push, 1 = approximation for ridge push
+	PSP_slab_pull_factor=float(main_args[4]) 	
+	include_ridge_push=int(main_args[5]) 	# 0 = no ridge push, 1 = approximation for ridge push
 	smoke_mode = False
 	skip_map = False
 	out_prefix = ''
@@ -148,6 +143,16 @@ if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
+if formulation in [4, 5, 6]:
+	print("formulations 4-6 (power-law) are no longer supported")
+	print(USAGE)
+	sys.exit(2)
+if formulation not in [1, 2, 3, 7, 8, 9]:
+	print("unsupported formulation: %s" % formulation)
+	print(USAGE)
+	sys.exit(2)
+
+trans_strain_rate = 1.0e-13
 
 # calculation parameters
 include_PSP_interactions = 0    # include simple parameterization of PSP force transmission?
@@ -319,8 +324,8 @@ for k in range(0,len(lith_viscs)):
 		yield_sigma = yield_stress[k,j]; 
 		pre = pre_values[k,j]
 
-		# power-law
-		if formulation == 4 or formulation == 5 or formulation == 6 or formulation == 8:
+		# formulation 8 requires per-segment nonlinear solve
+		if formulation == 8:
 			vsp_estimate=np.zeros((num,1));
 			for i in range(0,len(vt_actual)):
 				if include_DP == 1:
@@ -379,13 +384,13 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 fig = plt.figure()
 
 ax = fig.add_subplot(211)
-if formulation == 2 or formulation == 5:
+if formulation == 2:
 	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, extent=[asth_visc_min, asth_visc_max, yield_min/1e6, yield_max/1e6], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/((yield_max/1e6)-(yield_min/1e6)))
 	ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-elif formulation == 1 or formulation == 4 or formulation == 7 or formulation == 8:
+elif formulation == 1 or formulation == 7 or formulation == 8:
 	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, lith_visc_min, lith_visc_max], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/(lith_visc_max-lith_visc_min))
 	ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
-elif formulation == 3 or formulation == 6:
+elif formulation == 3:
 	im1 = ax.imshow(100.0 * (sign/n),  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, pre_min, pre_max], vmax=100.0, vmin=60.0,aspect=(asth_visc_max-asth_visc_min)/(pre_max-pre_min))
 	ax.set_ylabel("K")
 ax.text(0.07,0.88,"%s with correct sign" % ('%'),size=12.5, color="black",transform = ax.transAxes)
@@ -394,13 +399,13 @@ annot_string = ''.join(['best: ',str(num_sign_matches_max),'/',str(n),' signs, R
 plt.annotate(annot_string, xy=(0.035, 1.05), xycoords='axes fraction',verticalalignment='center',horizontalalignment='left',fontsize=7)
 
 ax = fig.add_subplot(212)
-if formulation == 2 or formulation == 5:
+if formulation == 2:
 	im2 = ax.imshow(rms,  cmap=cm.RdYlGn,  extent=[asth_visc_min, asth_visc_max, yield_min/1e6, yield_max/1e6], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/((yield_max/1e6)-(yield_min/1e6)))
 	ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-elif formulation == 1 or formulation == 4 or formulation == 7 or formulation == 8:
+elif formulation == 1 or formulation == 7 or formulation == 8:
 	im2 = ax.imshow(rms,  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, lith_visc_min, lith_visc_max], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/(lith_visc_max-lith_visc_min))
 	ax.set_ylabel("$\mathregular{\eta_{L}}$  [Pa.s]")
-elif formulation == 3 or formulation == 6:
+elif formulation == 3:
 	im2 = ax.imshow(rms,  cmap=cm.RdYlGn, origin='lower', extent=[asth_visc_min, asth_visc_max, pre_min, pre_max], vmax=10.0, vmin=0.0,aspect=(asth_visc_max-asth_visc_min)/(pre_max-pre_min))
 	ax.set_ylabel("K")
 ax.set_xlabel("$\mathregular{\eta_{A}}$  [Pa.s]")
@@ -434,18 +439,6 @@ elif formulation == 3: # just slab pull (with prefactor)
 	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.just-slab-pull.png'])
 	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a',str(signs_asthen_visc),'.just-slab-pull'])
 	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
-elif formulation == 4: # power law, viscous bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_viscous_bending.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_viscous_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_viscous_bending'])
-elif formulation == 5: # power law, plastic bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_plastic-bending.png'])   
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_plastic_bending'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_plastic_bending'])
-elif formulation == 6: # power law, just slab pull (with prefactor)
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_just-slab-pull.png'])
-	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(signs_pre),'_a10e',str(signs_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])	
 elif formulation == 7:  # regular, hSP \propto LSP
 	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
 	signs_name=''.join(['predictions/signs_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])

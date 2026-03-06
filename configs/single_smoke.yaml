@@ -2,7 +2,6 @@ vt_ref: sa
 formulation: 1
 include_DP: 1
 DP_ref: 2.35e7
-trans_strain_rate: 1.0e-13
 PSP_slab_pull_factor: 0.25
 asthen_visc: 1.0e21
 lith_visc: 1.0e22

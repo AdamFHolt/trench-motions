@@ -5,7 +5,6 @@ SMOKE_REF ?= sa
 SMOKE_FORMULATION ?= 1
 SMOKE_INCLUDE_DP ?= 1
 SMOKE_DP_REF ?= 23.5e6
-SMOKE_TRANS_STRAIN ?= 1e-13
 SMOKE_PSP_FACTOR ?= 0.25
 SMOKE_INCLUDE_RP ?= 0
 
@@ -13,7 +12,6 @@ SINGLE_REF ?= sa
 SINGLE_FORMULATION ?= 1
 SINGLE_INCLUDE_DP ?= 1
 SINGLE_DP_REF ?= 23.5e6
-SINGLE_TRANS_STRAIN ?= 1e-13
 SINGLE_PSP_FACTOR ?= 0.25
 SINGLE_ASTHEN_VISC ?= 1e21
 SINGLE_LITH_VISC ?= 1e22
@@ -28,17 +26,11 @@ SINGLE_CONFIG ?= configs/single_smoke.yaml
 MATRIX_CONFIGS ?= \
 	configs/matrix/linear_hs3.yaml \
 	configs/matrix/linear_nnr.yaml \
-	configs/matrix/linear_sa.yaml \
-	configs/matrix/powerlaw_hs3.yaml \
-	configs/matrix/powerlaw_nnr.yaml \
-	configs/matrix/powerlaw_sa.yaml
+	configs/matrix/linear_sa.yaml
 MATRIX_MAP_CONFIGS ?= \
 	configs/matrix_maps/linear_hs3.yaml \
 	configs/matrix_maps/linear_nnr.yaml \
-	configs/matrix_maps/linear_sa.yaml \
-	configs/matrix_maps/powerlaw_hs3.yaml \
-	configs/matrix_maps/powerlaw_nnr.yaml \
-	configs/matrix_maps/powerlaw_sa.yaml
+	configs/matrix_maps/linear_sa.yaml
 MATRIX_RUNS_DIR ?= results/matrix
 MATRIX_SUMMARY_DIR ?= results/matrix/summary
 
@@ -56,7 +48,6 @@ smoke:
 		$(SMOKE_FORMULATION) \
 		$(SMOKE_INCLUDE_DP) \
 		$(SMOKE_DP_REF) \
-		$(SMOKE_TRANS_STRAIN) \
 		$(SMOKE_PSP_FACTOR) \
 		$(SMOKE_INCLUDE_RP) \
 		--smoke --skip-map
@@ -67,7 +58,6 @@ single-smoke:
 		$(SINGLE_FORMULATION) \
 		$(SINGLE_INCLUDE_DP) \
 		$(SINGLE_DP_REF) \
-		$(SINGLE_TRANS_STRAIN) \
 		$(SINGLE_PSP_FACTOR) \
 		$(SINGLE_ASTHEN_VISC) \
 		$(SINGLE_LITH_VISC) \

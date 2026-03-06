@@ -6,7 +6,6 @@ Matrix dimensions currently included:
 - Reference frame (`vt_ref`): `hs3`, `nnr`, `sa`
 - Formulation suite:
   - `linear` (`formulation: 1`)
-  - `powerlaw` (`formulation: 4`, `trans_strain_rate: 1e-13`)
 
 Common settings:
 - `include_DP: 1`

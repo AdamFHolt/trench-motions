@@ -19,7 +19,7 @@ def ensure_parent_dir(path):
 
 
 USAGE = """Usage:
-  python3 compute_rates_single.py <vt_ref> <formulation> <include_DP> <DP_ref> <trans_strain_rate> <PSP_slab_pull_factor> <asthen_visc> <lith_visc> [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_single.py <vt_ref> <formulation> <include_DP> <DP_ref> <PSP_slab_pull_factor> <asthen_visc> <lith_visc> [--skip-map] [--out-prefix <dir>]
   python3 compute_rates_single.py --config <path.yaml> [--skip-map] [--out-prefix <dir>]
 
 Arguments:
@@ -27,7 +27,6 @@ Arguments:
   formulation           integer model id
   include_DP            0 | 1
   DP_ref                float (Pa)
-  trans_strain_rate     float (s^-1)
   PSP_slab_pull_factor  float
   asthen_visc           float (Pa.s)
   lith_visc             float (Pa.s)
@@ -71,7 +70,6 @@ if cfg:
 			'formulation',
 			'include_DP',
 			'DP_ref',
-			'trans_strain_rate',
 			'PSP_slab_pull_factor',
 			'asthen_visc',
 			'lith_visc',
@@ -85,7 +83,6 @@ if cfg:
 	formulation = int(cfg['formulation'])
 	include_DP = int(cfg['include_DP'])
 	DP_ref = float(cfg['DP_ref'])
-	trans_strain_rate = float(cfg['trans_strain_rate'])
 	PSP_slab_pull_factor = float(cfg['PSP_slab_pull_factor'])
 	asthen_visc = float(cfg['asthen_visc'])
 	lith_visc = float(cfg['lith_visc'])
@@ -93,19 +90,18 @@ if cfg:
 	skip_map = bool(cfg.get('skip_map', False))
 	out_prefix = str(cfg.get('out_prefix', ''))
 else:
-	if len(args_wo_config) < 8:
+	if len(args_wo_config) < 7:
 		print(USAGE)
 		sys.exit(2)
-	main_args = args_wo_config[:8]
-	extra_args = args_wo_config[8:]
+	main_args = args_wo_config[:7]
+	extra_args = args_wo_config[7:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor, 4 = regular, power-law, 5 = plastic, power-law, 6 = pre-factor, power-law
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = slab pull pre-factor
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-	trans_strain_rate=float(main_args[4]) 	# typical value: 1e-13 s-1
-	PSP_slab_pull_factor=float(main_args[5]) 	
-	asthen_visc = float(main_args[6])
-	lith_visc = float(main_args[7])
+	PSP_slab_pull_factor=float(main_args[4]) 	
+	asthen_visc = float(main_args[5])
+	lith_visc = float(main_args[6])
 	skip_map = False
 	out_prefix = ''
 
@@ -141,7 +137,16 @@ if include_DP not in [0, 1]:
 	print("include_DP must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
+if formulation in [4, 5, 6]:
+	print("formulations 4-6 (power-law) are no longer supported")
+	print(USAGE)
+	sys.exit(2)
+if formulation not in [1, 2, 3]:
+	print("unsupported formulation: %s" % formulation)
+	print(USAGE)
+	sys.exit(2)
 composite = 0
+trans_strain_rate = 1.0e-13
 
 
 # calculation parameters
@@ -296,25 +301,12 @@ for k in range(0,1):
 		yield_sigma = 1
 		pre = 1
 
-		# power-law
-		if formulation >= 4:
-			vsp_estimate=np.zeros((num,1));
-			for i in range(0,len(vt_actual)):
-				if include_DP == 1:
-					vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
-						w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor[i],PSP_force_transmitted,ride_push[i],Lop[i])
-				else:
-					sys.exit(1)
-					# vsp_estimate[i] = compute_vsp(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],dip[i],oceanic_buoy[i],yield_sigma,trans_strain_rate,n,pre)
-
-		# non power-law			
+		if include_DP == 1:
+			vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
+				w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push,Lop)
 		else:
-			if include_DP == 1:
-				vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-					w_ref,trenchv_ref,w,slabD,yield_sigma,n,pre,trans_strain_rate,composite,external_force_factor,PSP_force_transmitted,ride_push,Lop)
-			else:
-				sys.exit(1)
-				# vsp_estimate = compute_vsp(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,dip,oceanic_buoy,yield_sigma,trans_strain_rate,n,pre)
+			sys.exit(1)
+			# vsp_estimate = compute_vsp(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,dip,oceanic_buoy,yield_sigma,trans_strain_rate,n,pre)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;
@@ -372,16 +364,6 @@ elif formulation == 2: # plastic bending
 elif formulation == 3: # just slab pull (with prefactor)
 	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.just-slab-pull.png'])
 	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a',str(rms_asthen_visc),'.just-slab-pull'])
-elif formulation == 4: # power law, viscous bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_viscous_bending.png'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_viscous_bending'])
-elif formulation == 5: # power law, plastic bending
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_plastic-bending.png'])   
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_plastic_bending'])
-elif formulation == 6: # power law, just slab pull (with prefactor)
-	plot_name=''.join(['plots/misfits_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.power-law',str(trans_strain_rate),'_just-slab-pull.png'])
-	rms_name=''.join(['predictions/rms_',str(vt_ref),'model',DP_string,PSP_string,RP_string,'.pre',str(rms_pre),'_a10e',str(rms_asthen_visc),'.power-law',str(trans_strain_rate),'_just-slab-pull'])	
-
 plot_name = out_path(plot_name)
 rms_name = out_path(rms_name)
 ensure_parent_dir(plot_name)
