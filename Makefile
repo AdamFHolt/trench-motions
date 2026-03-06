@@ -17,7 +17,7 @@ SINGLE_LITH_VISC ?= 1e22
 QUICK_PREDICTED ?= archive/generated/predictions/new/linear/rms_samodel.DP2.35e+07MPa.l20.0_a10e22.0.viscous_bending.txt
 QUICK_OBSERVED ?= data/vt/tnew.sa.dat
 QUICK_OUTPUT ?= results/quick/quick_check.png
-QUICK_TITLE ?= Manual quick check
+QUICK_TITLE ?= One-off quick check
 
 MISFIT_CONFIG ?= configs/misfit_smoke.yaml
 SINGLE_CONFIG ?= configs/single_smoke.yaml

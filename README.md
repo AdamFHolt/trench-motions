@@ -12,7 +12,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Run the canonical fast sweep + summary:
+2. Run the canonical sweep + summary:
 ```bash
 make run-matrix-with-summary
 ```
@@ -22,7 +22,7 @@ make run-matrix-with-summary
 - Summary table: `results/param-sweep/summary/matrix_summary.csv`
 - Summary plots: `results/param-sweep/summary/*.png`
 
-4. Optional full-size sweep (slower):
+4. Optional sweep only (no summary step):
 ```bash
 make run-matrix
 ```
@@ -162,7 +162,7 @@ export DATASETS_DIR=/path/to/datasets
 make run-matrix-maps-with-summary
 ```
 
-Manual quick plot (no GMT) from existing files:
+One-off quick plot (no GMT) from existing files:
 ```bash
 make quick-plot
 ```
