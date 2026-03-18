@@ -267,17 +267,8 @@ for k in range(0,len(lith_viscs)):
 		yield_sigma = yield_stress[k,j]; 
 		pre = 1.0
 
-		# formulation 4 requires per-segment nonlinear solve
-		if formulation == 4:
-			vsp_estimate=np.zeros((num,1));
-			for i in range(0,len(vt_actual)):
-				vsp_estimate[i] = compute_vsp_withDP(formulation,vc[i],h,visc_asthen,visc_lith,H[i],Lsp[i],Rmin[i],slabL[i],slabL_buoy[i],dip[i],oceanic_buoy[i],DP_ref,visc_asthen_ref,\
-					w_ref,trenchv_ref,w[i],slabD[i],yield_sigma,pre,external_force_factor[i],ride_push[i],Lop[i])
-
-		# vectorized solve for standard formulations
-		else:
-			vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-				w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,ride_push,Lop)
+		vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
+			w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,ride_push,Lop)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 		rms_sum = 0; num_sign_matches = 0;

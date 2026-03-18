@@ -66,29 +66,28 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) - \
 			(2.0 * vc * slabL * (visc_asthen/hsp_eff)) + vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
-	elif formulation == 4: # viscous bending, with h proportional to Vsp
+	elif formulation == 4: # viscous bending, with h proportional to Vsp -- closed-form quadratic
 
-		vsp_ref = 5.0 * vel_converter # 5 cm/yr 
-		hsp_ref = 200.e3; 
-		h0 = 150.e3;
+		vsp_ref = 5.0 * vel_converter # 5 cm/yr
+		hsp_ref = 200.e3
+		h0 = 150.e3
+		m = (hsp_ref - h0) / vsp_ref  # slope: d(h_eff)/d(vsp)
 
-		max_num_its = 5000; tolerance=0.001 * vel_converter
-		vsp_init = vsp_ref
+		C_DP = (slabD * DP_ref * w) / (visc_asthen_ref * w_ref * vt_ref)
 
-		for i in range(0,max_num_its):
+		# Driving + vc-dependent terms (excl. the 2*eta_A*L/h*vc drag which enters via c)
+		P = (slabD * oceanic_buoy * g) + ridge_push \
+			- ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) \
+			+ visc_asthen * C_DP * vc
 
-			hSP_eff = h0 + vsp_init*((hsp_ref - h0)/vsp_ref)
+		# Substituting h_eff = h0 + m*vsp into the force balance and
+		# multiplying through by h_eff gives: a*vsp^2 + b*vsp + c = 0
+		a = visc_asthen * C_DP * m
+		b = visc_asthen * (Lsp + C_DP * h0) - P * m
+		c = -(P * h0 - 2.0 * vc * slabL * visc_asthen)
 
-			prefactor =  visc_asthen * ( (Lsp/hSP_eff) + ((slabD * DP_ref * w)/(visc_asthen_ref * w_ref * vt_ref)) )
-			vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) - \
-				(2.0 * vc * slabL * (visc_asthen/hSP_eff)) + vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
-			
-			if abs(vsp_init - vsp) < tolerance:
-				break
-			else:
-				vsp_init = vsp_init + 0.5*(vsp-vsp_init)
-				if vsp < 0:
-					break
+		disc = b**2 - 4.0 * a * c
+		vsp = (-b + np.sqrt(np.maximum(disc, 0.0))) / (2.0 * a)
 
 	elif formulation == 5: # viscous bending, with OP drag
 
