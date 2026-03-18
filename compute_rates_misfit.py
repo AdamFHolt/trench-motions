@@ -313,7 +313,7 @@ elif formulation in (1, 3, 4, 5):
 if include_DP == 0:
 	DP_string=''
 else:
-	DP_string = ''.join(['.DP',str("%.3g" % DP_ref),'MPa'])
+	DP_string = ''.join(['.DP',str("%.3g" % (DP_ref/1e6)),'MPa'])
 
 if include_ridge_push:
 	RP_string = '.withRP'

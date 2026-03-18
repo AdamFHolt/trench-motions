@@ -264,7 +264,7 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 if include_DP == 0:
 	DP_string=''
 else:
-	DP_string = ''.join(['.DP',str("%.3g" % DP_ref),'MPa'])
+	DP_string = ''.join(['.DP',str("%.3g" % (DP_ref/1e6)),'MPa'])
 
 if include_ridge_push:
 	RP_string = '.withRP'
