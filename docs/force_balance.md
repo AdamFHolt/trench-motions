@@ -15,7 +15,6 @@
 | $D$ | `slabD` | Slab depth | m |
 | $L$ | `slabL` | Horizontal plate length (plate drag) | m |
 | $\mathcal{L}_{sp}$ | `Lsp` | Slab length in asthenosphere (slab drag) | m |
-| $\mathcal{L}_{op}$ | `Lop` | Overriding plate length (F5 only) | m |
 | $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
 | $F_R$ | `ridge_push` | Ridge push force per unit trench length | N/m |
 | $g$ | — | Gravitational acceleration (9.81 m/s²) | m/s² |
@@ -112,7 +111,7 @@ $$\boxed{v_t = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - \
 
 ---
 
-## Formulation 4 — Viscous Bending, $h \propto v_{sp}$ (iterative)
+## Formulation 4 — Viscous Bending, $h \propto v_{sp}$ (closed-form quadratic)
 
 Channel thickness scales linearly with the slab velocity — faster slabs maintain a thicker shear zone:
 
@@ -122,41 +121,25 @@ $$h_\text{eff}(v_{sp}) = h_0 + v_{sp} \cdot \frac{h_\text{ref} - h_0}{v_{sp,\tex
 
 $$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}(v_{sp})} v_c + \eta_A \frac{\mathcal{L}_{sp}}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A C_{DP} \, v_t}$$
 
-### Solved for $v_t$ (implicit)
+### Solved for $v_{sp}$ (quadratic)
 
-Because $h_\text{eff}$ depends on $v_{sp}$, the equation is nonlinear and has no closed-form solution. Written implicitly:
+Substituting $h_\text{eff} = h_0 + m \, v_{sp}$ (where $m = (h_\text{ref}-h_0)/v_{sp,\text{ref}}$) and multiplying through by $h_\text{eff}$ yields $a \, v_{sp}^2 + b \, v_{sp} + c = 0$, with:
 
-$$\boxed{v_t = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - \eta_A \dfrac{2L + \mathcal{L}_{sp}}{h_\text{eff}(v_t + v_c)} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h_\text{eff}(v_t + v_c)} + C_{DP}\right)}}$$
+$$a = \eta_A C_{DP} m, \qquad b = \eta_A(\mathcal{L}_{sp} + C_{DP} h_0) - P m, \qquad c = -(P h_0 - 2\eta_A L v_c)$$
 
-Solved by fixed-point iteration, initialising at $v_{sp} = v_{sp,\text{ref}}$ and relaxing with step 0.5 until $|v_{sp}^{(n+1)} - v_{sp}^{(n)}| < 10^{-3}$ cm/yr. If $v_{sp}$ goes negative, iteration stops early.
+where $P = D B g + F_R - \tfrac{2}{3}(H^3/R^3)\eta_L v_c + \eta_A C_{DP} v_c$. Taking the positive root:
 
----
-
-## Formulation 5 — Viscous Bending + Overriding Plate Drag
-
-The asthenosphere under the overriding plate (length $\mathcal{L}_{op}$) is also sheared by the trench motion, adding a drag term coupled to $v_{sp}$.
-
-### Force balance
-
-$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + \underbrace{\left(2\eta_A \frac{L}{h} - \eta_A\frac{\mathcal{L}_{op}}{h}\right)}_{\text{net plate drag}} v_c + \underbrace{\eta_A \frac{\mathcal{L}_{sp} + \mathcal{L}_{op}}{h} v_{sp}}_{\text{slab + OP drag}} + \eta_A C_{DP} \, v_t}$$
-
-The overriding plate drag adds $\eta_A(\mathcal{L}_{op}/h) v_{sp}$ to the resistance and partially offsets the $v_c$-dependent plate drag by $\eta_A(\mathcal{L}_{op}/h) v_c$.
-
-### Solved for $v_t$
-
-$$\boxed{v_t = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - \eta_A \dfrac{2L + \mathcal{L}_{sp}}{h} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp} + \mathcal{L}_{op}}{h} + C_{DP}\right)}}$$
-
-Crucially, the numerator is **identical to F1**. The overriding plate drag only increases the denominator. A wider overriding plate reduces $v_t$ by increasing the total resistance to trench motion, without changing the net driving force or convergence-dependent resistances.
+$$\boxed{v_{sp} = \frac{-b + \sqrt{b^2 - 4ac}}{2a}}$$
 
 ---
 
 ## Comparison Summary
 
-| | F1 Viscous | F2 Plastic | F3 $h(\mathcal{L}_{sp})$ | F4 $h(v_{sp})$ | F5 OP drag |
-|--|--|--|--|--|--|
-| Bending term | $\frac{2}{3}\frac{H^3}{R^3}\eta_L v_c$ | $\frac{1}{6}\frac{H^2}{R}\sigma_Y$ | same as F1 | same as F1 | same as F1 |
-| Bending depends on $v_c$? | yes | **no** | yes | yes | yes |
-| Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(\mathcal{L}_{sp})$ | $h(v_{sp})$ (iterative) | fixed, 200 km |
-| Denominator | $\eta_A(\mathcal{L}_{sp}/h + C_{DP})$ | same as F1 | $\eta_A(\mathcal{L}_{sp}/h_\text{eff} + C_{DP})$ | same structure | $\eta_A((\mathcal{L}_{sp}+\mathcal{L}_{op})/h + C_{DP})$ |
-| Numerator vs F1 | — | replace bending | replace $h$ | replace $h$ | **identical** |
-| Closed form? | yes | yes | yes | **no** | yes |
+| | F1 Viscous | F2 Plastic | F3 $h(\mathcal{L}_{sp})$ | F4 $h(v_{sp})$ |
+|--|--|--|--|--|
+| Bending term | $\frac{2}{3}\frac{H^3}{R^3}\eta_L v_c$ | $\frac{1}{6}\frac{H^2}{R}\sigma_Y$ | same as F1 | same as F1 |
+| Bending depends on $v_c$? | yes | **no** | yes | yes |
+| Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(\mathcal{L}_{sp})$ | $h(v_{sp})$ (quadratic) |
+| Denominator | $\eta_A(\mathcal{L}_{sp}/h + C_{DP})$ | same as F1 | $\eta_A(\mathcal{L}_{sp}/h_\text{eff} + C_{DP})$ | same structure |
+| Numerator vs F1 | — | replace bending | replace $h$ | replace $h$ |
+| Closed form? | yes | yes | yes | yes |

@@ -4,7 +4,7 @@ MAKEFLAGS += --no-print-directory
 
 RUN_CONFIG ?= configs/run_params.yaml
 REF_FRAMES ?= hs3 nnr sa
-FORMULATIONS ?= 1 2 3 4 5
+FORMULATIONS ?= 1 2 3 4
 SUMMARY_SUITES ?= param-sweep
 
 .PHONY: venv install run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary

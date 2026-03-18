@@ -1,5 +1,7 @@
 predictions/
-plots/
+plots/*
+!plots/sketch/
+!plots/sketch/**
 __pycache__/
 *.pyc
 tmp/

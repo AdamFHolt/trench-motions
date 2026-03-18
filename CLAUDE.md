@@ -36,13 +36,12 @@ python compute_rates_misfit.py --config configs/misfit_smoke.yaml --vt-ref hs3 -
 | `plotting_functions.py` | `save_quick_plot()`, `save_misfit_heatmap()`, `save_trench_motion_map()`. |
 | `matrix_summary.py` | Aggregates sweep results across all frames/models into CSV + bar plots. |
 
-## Formulations (active set 1–5)
+## Formulations (active set 1–4)
 
 1. Viscous bending + dynamic pressure (canonical)
 2. Plastic bending + DP
 3. Viscous, layer thickness ∝ slab length (Lsp)
-4. Viscous, layer thickness ∝ predicted velocity (Vsp) — iterative solver
-5. Viscous + overriding plate drag
+4. Viscous, layer thickness ∝ predicted velocity (Vsp) — closed-form quadratic
 
 Canonical config (`configs/run_params.yaml`): formulation=1, DP_ref=2.35e7 Pa, include_ridge_push=1.
 

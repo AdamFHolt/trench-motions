@@ -89,8 +89,6 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_sla
     azims = np.zeros((num, 1))
     w = np.zeros((num, 1))
     slabL_buoy = np.zeros((num, 1))
-    Lop = np.zeros((num, 1))
-    external_force_factor = np.zeros((num, 1))
 
     n = 0
     for i in range(0, data.shape[0]):
@@ -100,7 +98,6 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_sla
             latlon[n, 1] = data_vt[i, 1]
             azims[n, 0] = data[i, 4]
             Lsp[n, 0] = data[i, 26] * 1e3
-            Lop[n, 0] = data[i, 27] * 1e3
             dip[n, 0] = data[i, 6]
             vc[n, 0] = (data[i, 9] / 10.0) * vel_converter
             Rmin[n, 0] = data[i, 13] * 1e3
@@ -110,7 +107,6 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_sla
                 age[n, 0] = data[i, 20]
             w[n, 0] = data[i, 25] * 1e3
             vt_actual[n, 0] = data_vt[i, vt_col] / 10.0
-            external_force_factor[n, 0] = data[i, 27]
             slabD[n, 0] = data[i, 7] * 1e3
 
             if calc_slabL_using_dip == 1:
@@ -137,8 +133,6 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_sla
         'azims': azims,
         'w': w,
         'slabL_buoy': slabL_buoy,
-        'Lop': Lop,
-        'external_force_factor': external_force_factor,
     }
 
 

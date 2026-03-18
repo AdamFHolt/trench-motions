@@ -108,7 +108,7 @@ def save_quick_plot(predicted_path, observed_path, output_path, title, tol=0.1, 
 
     fig.suptitle(title)
     ensure_parent_dir(output_path)
-    fig.savefig(output_path, dpi=200)
+    fig.savefig(output_path, dpi=150)
     plt.close(fig)
 
 
@@ -446,7 +446,7 @@ def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, da
         raise ValueError("Unsupported mode '{}'; expected 'signs' or 'rms'.".format(mode))
 
     ensure_parent_dir(output_png)
-    fig.savefig(output_png, dpi=220, bbox_inches='tight', pad_inches=0.02)
+    fig.savefig(output_png, dpi=150, bbox_inches='tight', pad_inches=0.02)
     plt.close(fig)
 
 
@@ -482,7 +482,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3, 4, 5):
+    elif formulation in (1, 3, 4):
         im1 = ax.imshow(
             100.0 * (sign / n),
             cmap=cm.RdYlGn,
@@ -531,7 +531,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3, 4, 5):
+    elif formulation in (1, 3, 4):
         im2 = ax.imshow(
             rms,
             cmap=cm.RdYlGn,
@@ -562,5 +562,5 @@ def save_misfit_heatmap(
     cbar2.set_label('RMSE (cm/yr)')
 
     ensure_parent_dir(output_path)
-    fig.savefig(output_path, bbox_inches='tight', dpi=400)
+    fig.savefig(output_path, bbox_inches='tight', dpi=150)
     plt.close(fig)

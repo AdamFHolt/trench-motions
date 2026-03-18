@@ -36,7 +36,7 @@ def compute_plate_isotherm(age,DT,k,Tiso):
 
 
 def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,w_ref,vt_ref,\
-	w,slabD,yield_stress,pre,external_force_factor,ridge_push,Lop):
+	w,slabD,yield_stress,pre,ridge_push):
 
 	vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s 
 	g = 9.81;
@@ -88,12 +88,6 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 
 		disc = b**2 - 4.0 * a * c
 		vsp = (-b + np.sqrt(np.maximum(disc, 0.0))) / (2.0 * a)
-
-	elif formulation == 5: # viscous bending, with OP drag
-
-		prefactor =  visc_asthen * ( ((Lsp+Lop)/h) + ((slabD * DP_ref * w)/(visc_asthen_ref * w_ref * vt_ref)) )
-		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) - \
-			(2.0 * vc * slabL * (visc_asthen/h)) + (vc * Lop * (visc_asthen/h)) + vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
 	else:
 		raise ValueError("unsupported formulation: {}".format(formulation))

@@ -136,8 +136,6 @@ def formulation_slug(formulation_id):
 		return 'viscous_LspShear'
 	if formulation_id == 4:
 		return 'viscous_VspShear'
-	if formulation_id == 5:
-		return 'viscous_ShearOP'
 	raise ValueError("unsupported formulation: {}".format(formulation_id))
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
@@ -148,7 +146,7 @@ if include_DP not in [0, 1]:
 	print("include_DP must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3, 4, 5]:
+if formulation not in [1, 2, 3, 4]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -216,8 +214,6 @@ latlon = segments['latlon']
 azims = segments['azims']
 w = segments['w']
 slabL_buoy = segments['slabL_buoy']
-Lop = segments['Lop']
-external_force_factor = segments['external_force_factor']
 
 H, oceanic_buoy, ride_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
 
@@ -231,7 +227,7 @@ yield_sigma = 1
 pre = 1
 
 vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-	w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,ride_push,Lop)
+	w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ride_push)
 
 vt_estimate = (vc/vel_converter) - vsp_estimate
 rms_sum = 0; num_sign_matches = 0;
@@ -283,9 +279,6 @@ elif formulation == 3:  # regular, hSP \propto LSP
 elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-elif formulation == 5:  # regular, with OP drag
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = misfit_plot_out_path(plot_name)
 rms_name = out_path(rms_name)
 

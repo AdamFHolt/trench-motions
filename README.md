@@ -20,7 +20,7 @@ make run-matrix-with-summary
 3. Look at results:
 - Sweep products: `plots/<hs3|nnr|sa>/<model>/param-sweep/...`
 - Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/...`
-- Sweep summary table: `plots/summary/param-sweep/matrix_summary.csv`
+- Sweeprun-matrix summary table: `plots/summary/param-sweep/matrix_summary.csv`
 - Sweep summary plots: `plots/summary/param-sweep/*.png`
 
 4. Optional sweep only (no summary step):

@@ -16,7 +16,7 @@ def ensure_parent_dir(path):
 
 USAGE = """Usage:
   python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
-  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1-5>] [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1-4>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
@@ -86,7 +86,6 @@ else:
 	extra_args = args_wo_config[5:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
 	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP, 4 = regular, hSP \propto VSP
-											# 5 = regular, with OP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
@@ -146,8 +145,6 @@ def formulation_slug(formulation_id):
 		return 'viscous_LspShear'
 	if formulation_id == 4:
 		return 'viscous_VspShear'
-	if formulation_id == 5:
-		return 'viscous_ShearOP'
 	raise ValueError("unsupported formulation: {}".format(formulation_id))
 
 
@@ -167,7 +164,7 @@ if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3, 4, 5]:
+if formulation not in [1, 2, 3, 4]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -248,41 +245,35 @@ latlon = segments['latlon']
 azims = segments['azims']
 w = segments['w']
 slabL_buoy = segments['slabL_buoy']
-Lop = segments['Lop']
-external_force_factor = segments['external_force_factor']
 
 H, oceanic_buoy, ride_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
 
 rms_min = 10.0
 num_sign_matches_max = 0
+pre = 1.0
 for k in range(0,len(lith_viscs)):
 
 	for j in range(0,len(asthen_viscs)):
 
-		stored_rms_vals = np.zeros((num,1));
-		stored_sign_vals = np.zeros((num,1));
-
 		visc_asthen = 10**asthen_visc[k,j];
 		visc_lith = 10**lith_visc[k,j];
-		yield_sigma = yield_stress[k,j]; 
-		pre = 1.0
+		yield_sigma = yield_stress[k,j];
 
 		vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-			w_ref,trenchv_ref,w,slabD,yield_sigma,pre,external_force_factor,ride_push,Lop)
+			w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ride_push)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
-		rms_sum = 0; num_sign_matches = 0;
-		for i in range(0,n):
-			diff = float(vt_estimate[i,0] - vt_actual[i,0])
-			rms_sum = rms_sum + diff**2;
-			stored_rms_vals[i] = np.abs(diff)
-			if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
-				num_sign_matches = num_sign_matches + 1
-				stored_sign_vals[i] = 1
-			elif (vt_estimate[i] > -0.3 and vt_estimate[i] <= 0.3) and (vt_actual[i] > -0.3 and vt_actual[i] <= 0.3):
-				num_sign_matches = num_sign_matches + 1
-				stored_sign_vals[i] = 1
-		rms_act = float(np.sqrt(rms_sum / float(n)))
+
+		diffs = (vt_estimate - vt_actual)[:,0]
+		stored_rms_vals = np.abs(diffs).reshape(-1,1)
+		rms_act = float(np.sqrt(np.mean(diffs**2)))
+
+		vt_e = vt_estimate[:,0];  vt_a = vt_actual[:,0]
+		same_sign = np.sign(vt_e) == np.sign(vt_a)
+		near_zero = (vt_e > -0.3) & (vt_e <= 0.3) & (vt_a > -0.3) & (vt_a <= 0.3)
+		stored_sign_vals = (same_sign | near_zero).astype(float).reshape(-1,1)
+		num_sign_matches = int(stored_sign_vals.sum())
+
 		rms[k,j] = rms_act;
 		sign[k,j] = num_sign_matches;
 
@@ -308,7 +299,7 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 if formulation == 2:
 	signs_y_param = signs_yield_stress
 	rms_y_param = rms_yield_stress
-elif formulation in (1, 3, 4, 5):
+elif formulation in (1, 3, 4):
 	signs_y_param = signs_lith_visc
 	rms_y_param = rms_lith_visc
 
@@ -338,10 +329,6 @@ elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
-elif formulation == 5:  # regular, with OP drag
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_withOP.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_withOP'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = suite_out_path('param-sweep', plot_name)
 signs_name = suite_out_path('maps', signs_name)
 rms_name = suite_out_path('maps', rms_name)
