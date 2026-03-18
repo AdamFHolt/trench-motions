@@ -94,7 +94,7 @@ Understand which of the ~160 Lallemand segments make it into the active set (~12
 - Flag segments where observed vt is missing in one or more reference frames
 
 ### iii) Vt vs. parameter plots (model curves + data)
-Reproduce the style of `plots/sketch/force-balance.pdf`: 2×2 panel showing $V_T$ vs. $L_{sp}$, $L_{slab}$, $age_{SP}$, $R_{min}$, with model curves for representative $V_c$ values (e.g. 1, 5, 10 cm/yr) and observed data coloured by $V_c$. One figure per formulation, or overlay best-fit cases from multiple formulations. Add to `plotting_functions.py` as `save_vt_param_plot()`.
+Reproduce `plots/sketch/rates_samodel_no_depth_cutoff_LithVisc5e+22_AsthVisc1e+21.png`: 2×2 panel showing $V_T$ vs. $L_{sp}$, $L_{slab}$, $age_{SP}$, $R_{min}$, with model curves for representative $V_c$ values (1, 5, 10 cm/yr) and observed data coloured by $V_c$. One figure per (formulation × ref-frame) best-fit case. Add to `plotting_functions.py` as `save_vt_param_plot()`.
 
 ### iv) Collaborator handoff — clean up and document
 - Confirm all scripts run end-to-end from a clean clone (`make run-matrix-with-summary`)
