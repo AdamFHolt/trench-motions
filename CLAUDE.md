@@ -1,10 +1,12 @@
 # CLAUDE.md — trench-motions
 
 ## What this project is
-Analytical subduction/trench-motion modeling. Computes predicted vertical trench velocity for ~120 global subduction segments using physical formulations (slab pull, ridge push, dynamic pressure). Compares predictions to observed trench motion data in three reference frames (hs3, nnr, sa). Outputs: RMSE metrics, scatter plots, misfit heatmaps, global maps.
+Analytical subduction/trench-motion modeling. Computes predicted trench velocity for ~120 global subduction segments using physical force-balance formulations (slab pull, ridge push, dynamic pressure). Compares predictions to observed trench motion data in three reference frames (hs3, nnr, sa). Outputs: RMSE metrics, scatter plots, misfit heatmaps, global maps.
 
 Main dataset: `Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.txt`
 Observed velocities: `data/vt/tnew.<hs3|nnr|sa>.dat`
+Force-balance derivations: `docs/force_balance.md`
+Sketch/figures: `plots/sketch/`
 
 ## Development commands
 
@@ -23,35 +25,43 @@ python compute_rates_single.py --config configs/single_smoke.yaml --skip-map
 
 # Sweep smoke test
 python compute_rates_misfit.py --config configs/misfit_smoke.yaml --vt-ref hs3 --skip-map
+
+# Run a single formulation/frame only
+make run-matrix FORMULATIONS=1 REF_FRAMES=nnr
 ```
 
 ## Active scripts
 
 | File | Role |
 |------|------|
-| `compute_rates_misfit.py` | Parameter sweep driver. Accepts `--config` YAML or positional args. |
+| `compute_rates_misfit.py` | Parameter sweep driver. Accepts `--config` YAML or positional args. Key flags: `--formulation`, `--vt-ref`, `--skip-map`, `--smoke`. |
 | `compute_rates_single.py` | Single deterministic run with fixed viscosity values. |
-| `functions.py` | Physics engine — `compute_vsp_withDP()` implements all 5 formulations. |
+| `functions.py` | Physics engine — `compute_vsp_withDP()` implements all 4 formulations. |
 | `workflow_common.py` | Shared data prep: VT column mapping, segment arrays, depth/dip interpolation. |
 | `plotting_functions.py` | `save_quick_plot()`, `save_misfit_heatmap()`, `save_trench_motion_map()`. |
 | `matrix_summary.py` | Aggregates sweep results across all frames/models into CSV + bar plots. |
 
 ## Formulations (active set 1–4)
 
-1. Viscous bending + dynamic pressure (canonical)
-2. Plastic bending + DP
-3. Viscous, layer thickness ∝ slab length (Lsp)
-4. Viscous, layer thickness ∝ predicted velocity (Vsp) — closed-form quadratic
+| # | Name (slug) | Bending | Channel thickness h |
+|---|-------------|---------|---------------------|
+| 1 | `viscous` | Viscous, $\frac{2}{3}(H^3/R^3)\eta_L v_c$ | Fixed, 200 km |
+| 2 | `plastic` | Plastic, $\frac{1}{6}(H^2/R)\sigma_Y$ | Fixed, 200 km |
+| 3 | `viscous_LspShear` | Viscous | $h \propto L_{sp}$ (100–250 km) |
+| 4 | `viscous_VspShear` | Viscous | $h \propto v_{sp}$ (150–200 km), closed-form quadratic |
 
 Canonical config (`configs/run_params.yaml`): formulation=1, DP_ref=2.35e7 Pa, include_ridge_push=1.
+
+All formulations include dynamic pressure (DP) back-pressure parameterised from a reference Stokes solution. See `docs/force_balance.md` for full derivations.
 
 ## Output layout
 
 ```
-plots/<hs3|nnr|sa>/<model>/param-sweep/   # sweep plots and best-fit diagnostics
-plots/<hs3|nnr|sa>/<model>/maps/          # global maps and prediction tables
-plots/summary/param-sweep/               # matrix_summary.csv, RMSE/sign-match bar plots
+plots/<hs3|nnr|sa>/<model>/param-sweep/   # misfit heatmaps and best-fit diagnostics
+plots/<hs3|nnr|sa>/<model>/maps/          # global maps and prediction tables (.txt)
+plots/summary/param-sweep/               # matrix_summary.csv, rmse_by_run.png, sign_match_by_run.png
 plots/summary/maps/                      # summary across map runs
+plots/sketch/                            # hand-drawn / reference figures (tracked in git)
 ```
 
 ## Latest results (Formulation 1, viscous, DP_ref=2.35e7, with ridge push)
@@ -62,13 +72,6 @@ plots/summary/maps/                      # summary across map runs
 | nnr   | 2.27 cm/yr | 94/120   |
 | sa    | 3.08 cm/yr | 84/120   |
 
-## Suggested next steps (science)
-
-1. Run parameter experiments across all formulations (1–5) for all three reference frames.
-2. Compare summary outputs: `plots/summary/param-sweep/matrix_summary.csv`, `rmse_by_run.png`, `sign_match_by_run.png`.
-3. Select best-fit cases per frame and generate map products for interpretation.
-4. Add per-reference-frame interpretation notes (e.g. for student handoff).
-
 ## Map data
 
 Map plotting auto-detects:
@@ -76,3 +79,26 @@ Map plotting auto-detects:
 - `data/PB2002_tdiddy.gmt` — Bird plate boundaries
 
 Or set `DATASETS_DIR` to a root containing `age/age.3.6.NaN.grd` and `plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt`. Maps run without these files, just without the background overlays.
+
+---
+
+## Next steps
+
+### i) Matrix summary — cover all formulations and reference frames
+`matrix_summary.py` currently aggregates across reference frames but the bar plots should also break out formulations side-by-side (or grouped). Goal: a single figure showing RMSE and sign-match for every (formulation × ref-frame) combination so the best model can be selected at a glance.
+
+### ii) Dataset audit — which trenches are included/excluded
+Understand which of the ~160 Lallemand segments make it into the active set (~120) and why the others are dropped (missing dip, Rmin, age, vt, etc.). Useful outputs:
+- A table or map of included vs. excluded segments
+- Distribution plots of key parameters (age, dip, Rmin, Lsp, slabD) for included segments
+- Flag segments where observed vt is missing in one or more reference frames
+
+### iii) Vt vs. parameter plots (model curves + data)
+Reproduce the style of `plots/sketch/force-balance.pdf`: 2×2 panel showing $V_T$ vs. $L_{sp}$, $L_{slab}$, $age_{SP}$, $R_{min}$, with model curves for representative $V_c$ values (e.g. 1, 5, 10 cm/yr) and observed data coloured by $V_c$. One figure per formulation, or overlay best-fit cases from multiple formulations. Add to `plotting_functions.py` as `save_vt_param_plot()`.
+
+### iv) Collaborator handoff — clean up and document
+- Confirm all scripts run end-to-end from a clean clone (`make run-matrix-with-summary`)
+- Add a brief methods note or caption-ready description for each plot type
+- Check that `docs/force_balance.md` is self-contained and matches the current code exactly
+- Remove any remaining debug prints or stale comments
+- Tag a clean release commit once the above are done
