@@ -180,7 +180,7 @@ vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s
 h = 200e3; # m
 n = 3.5;
 g = 9.81;
-ma_to_s = 1e6 * 356 * 24 * 60 * 60;
+ma_to_s = 1e6 * 365 * 24 * 60 * 60;
 kappa = 1e-6; alpha = 3.e-5
 dT = 1300.
 rho0 = 3300.; rhoW = 1000.

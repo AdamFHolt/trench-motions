@@ -174,9 +174,9 @@ vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s
 h = 200e3; # m
 n = 3.5;
 g = 9.81;
-ma_to_s = 1e6 * 356 * 24 * 60 * 60;
+ma_to_s = 1e6 * 365 * 24 * 60 * 60;
 kappa = 1e-6; alpha = 3.e-5
-dT = 1500.
+dT = 1300.
 rho0 = 3300.; rhoW = 1000.
 
 # search parameters
@@ -241,7 +241,7 @@ for i in range(0,n):
 	stored_rms_vals[i] = np.abs(diff)
 	if np.sign(vt_estimate[i]) == np.sign(vt_actual[i]):
 		num_sign_matches = num_sign_matches + 1
-	elif (vt_estimate[i] > -0.5 and vt_estimate[i] <= 0.5) and (vt_actual[i] > -0.5 and vt_actual[i] <= 0.5):
+	elif (vt_estimate[i] > -0.3 and vt_estimate[i] <= 0.3) and (vt_actual[i] > -0.3 and vt_actual[i] <= 0.3):
 		num_sign_matches = num_sign_matches + 1
 rms_act = float(np.sqrt(rms_sum / float(n)))
 
@@ -288,23 +288,20 @@ elif formulation == 5:  # regular, with OP drag
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_withOP'])
 plot_name = misfit_plot_out_path(plot_name)
 rms_name = out_path(rms_name)
-ensure_parent_dir(plot_name)
-plt.savefig(plot_name, bbox_inches='tight',dpi=400)
 
 # plot map
 rms_txt_name=''.join([rms_name,'.txt'])
 ensure_parent_dir(rms_txt_name)
-np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
+np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')
 
-vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
+vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])
 if skip_map:
 	print("skipping map plotting (--skip-map)")
-	quick_plot_name = ''.join([rms_name, '.quick.png'])
 	try:
 		save_quick_plot(
 			predicted_path=rms_txt_name,
 			observed_path=os.path.join('data', 'vt', vt_observed),
-			output_path=quick_plot_name,
+			output_path=plot_name,
 			title='Single-run quick check ({})'.format(vt_ref),
 		)
 	except Exception as exc:
