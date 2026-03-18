@@ -2,7 +2,7 @@
 
 This repository contains analytical subduction/trench-motion modeling scripts and supporting datasets.
 
-## Start Here (Student Workflow)
+## Start Here 
 Run from repository root.
 
 1. Setup environment:
@@ -55,7 +55,7 @@ make run-matrix-maps-with-summary
 ## Runtime notes
 - Active scripts are Python 3 compatible.
 - Python dependencies: `numpy`, `scipy`, `matplotlib`.
-- Map plotting dependencies: Python packages already in this repo (`numpy`, `scipy`, `matplotlib`).
+- Map plotting uses the same Python dependencies listed in `requirements.txt`.
 - In sweep runs, a quick diagnostic plot is generated for the best-fit case in every reference frame.
 
 ## Core Commands
@@ -80,6 +80,33 @@ For full CLI options and arguments:
 ```bash
 python3 compute_rates_misfit.py --help
 python3 compute_rates_single.py --help
+```
+
+## Git Workflow
+```bash
+# Check what's changed
+git status
+git diff
+
+# Stage and commit
+git add <file>         # stage specific file
+git add -p             # interactively stage hunks
+git commit -m "msg"
+
+# Branches
+git checkout -b my-branch    # new branch
+git checkout main            # switch back
+
+# Sync with remote
+git pull                     # fetch + merge
+git push                     # push current branch
+git push -u origin my-branch # push new branch and track it
+
+# Useful
+git log --oneline -10        # recent commits
+git diff HEAD~1              # diff vs last commit
+git stash                    # shelve uncommitted changes
+git stash pop                # restore stashed changes
 ```
 
 ## Datasets for map plotting
