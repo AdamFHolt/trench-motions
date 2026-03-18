@@ -16,7 +16,7 @@ def ensure_parent_dir(path):
 
 USAGE = """Usage:
   python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
-  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1-5>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
@@ -27,6 +27,7 @@ Arguments:
 
 Optional flags:
   --vt-ref <hs3|nnr|sa>  Override vt_ref (mainly for shared configs).
+  --formulation <1-5>   Override formulation (mainly for shared configs).
   --smoke     Use a small 3x3 parameter grid for fast checks.
   --skip-map  Skip full map plotting calls (quick plot is still generated).
   --out-prefix <dir>  Write generated outputs under a custom base directory.
@@ -95,6 +96,7 @@ else:
 
 i = 0
 vt_ref_override = None
+formulation_override = None
 while i < len(extra_args):
 	arg = extra_args[i]
 	if arg == '--vt-ref':
@@ -103,6 +105,13 @@ while i < len(extra_args):
 			print(USAGE)
 			sys.exit(2)
 		vt_ref_override = str(extra_args[i + 1])
+		i += 2
+	elif arg == '--formulation':
+		if i + 1 >= len(extra_args):
+			print("Missing value for --formulation")
+			print(USAGE)
+			sys.exit(2)
+		formulation_override = int(extra_args[i + 1])
 		i += 2
 	elif arg == '--smoke':
 		smoke_mode = True
@@ -124,6 +133,8 @@ while i < len(extra_args):
 
 if vt_ref_override:
 	vt_ref = vt_ref_override
+if formulation_override is not None:
+	formulation = formulation_override
 
 
 def formulation_slug(formulation_id):
