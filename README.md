@@ -81,32 +81,6 @@ python3 compute_rates_misfit.py --help
 python3 compute_rates_single.py --help
 ```
 
-## Git Workflow
-```bash
-# Check what's changed
-git status
-git diff
-
-# Stage and commit
-git add <file>         # stage specific file
-git add -p             # interactively stage hunks
-git commit -m "msg"
-
-# Branches
-git checkout -b my-branch    # new branch
-git checkout main            # switch back
-
-# Sync with remote
-git pull                     # fetch + merge
-git push                     # push current branch
-git push -u origin my-branch # push new branch and track it
-
-# Useful
-git log --oneline -10        # recent commits
-git diff HEAD~1              # diff vs last commit
-git stash                    # shelve uncommitted changes
-git stash pop                # restore stashed changes
-```
 
 ## Datasets for map plotting
 Map plotting uses the same dataset layout controls via `DATASETS_DIR`.
