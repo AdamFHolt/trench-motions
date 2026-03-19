@@ -4,7 +4,7 @@ import os, numpy as np
 import sys, tempfile, shutil
 import yaml
 from functions import compute_vsp_withDP
-from plotting_functions import save_misfit_heatmap, save_quick_plot, save_trench_motion_map
+from plotting_functions import save_misfit_heatmap, save_quick_plot, save_trench_motion_map, save_vt_param_plot
 from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
 
 
@@ -351,6 +351,26 @@ save_misfit_heatmap(
 	rms_min=rms_min,
 	output_path=plot_name,
 )
+
+vt_param_plot_name = suite_out_path(
+	'param-sweep',
+	'vt_param_' + os.path.basename(plot_name),
+)
+try:
+	save_vt_param_plot(
+		segments=segments,
+		H=H, oceanic_buoy=oceanic_buoy, ridge_push=ride_push,
+		formulation=formulation,
+		visc_lith=10**rms_lith_visc,
+		visc_asthen=10**rms_asthen_visc,
+		yield_stress=rms_yield_stress * 1e6,
+		DP_ref=DP_ref,
+		include_ridge_push=include_ridge_push,
+		vt_ref_label=vt_ref,
+		output_path=vt_param_plot_name,
+	)
+except Exception as exc:
+	print("warning: vt_param plot failed ({})".format(exc))
 
 # plot map
 signs_txt_name=''.join([signs_name,'.txt'])

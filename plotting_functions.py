@@ -450,6 +450,153 @@ def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, da
     plt.close(fig)
 
 
+def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
+                       formulation, visc_lith, visc_asthen, yield_stress,
+                       DP_ref, include_ridge_push, vt_ref_label, output_path, title=None):
+    """2x2 panel: VT vs Lsp, slabL, age_SP, Rmin.
+
+    Model curves for Vc = 1, 5, 10 cm/yr with all other parameters held at
+    their segment medians. Age panel recomputes H, oceanic_buoy, ridge_push
+    along the sweep. Data points are coloured by each segment's actual Vc.
+    """
+    from functions import compute_vsp_withDP, compute_plate_buoyancy, compute_plate_isotherm
+
+    # Physics constants — must match compute_rates_misfit.py
+    vel_converter = 0.01 / (365.0 * 24.0 * 60.0 * 60.0)
+    g = 9.81
+    ma_to_s = 1e6 * 365 * 24 * 60 * 60
+    kappa = 1e-6; alpha = 3e-5; dT = 1300.0; rho0 = 3300.0; rhoW = 1000.0
+    h_fixed = 200e3          # m (F1/F2 only; F3/F4 override internally)
+    visc_asthen_ref = 3e20
+    w_ref = 2224e3 * 2
+    trenchv_ref = 5.0 * vel_converter
+    pre = 1.0
+
+    # Flatten segment arrays
+    Lsp     = segments['Lsp'][:, 0]        # m
+    slabL   = segments['slabL'][:, 0]      # m
+    Rmin    = segments['Rmin'][:, 0]       # m
+    age_seg = segments['age'][:, 0]        # Ma
+    slabD   = segments['slabD'][:, 0]      # m
+    dip     = segments['dip'][:, 0]        # deg
+    w_seg   = segments['w'][:, 0]          # m
+    vc_seg  = segments['vc'][:, 0]         # m/s
+    vt_obs  = segments['vt_actual'][:, 0]  # cm/yr
+    H_seg        = H[:, 0]
+    ob_seg       = oceanic_buoy[:, 0]
+    rp_seg       = ridge_push[:, 0]
+
+    vc_obs_cmyr = vc_seg / vel_converter   # for scatter colour
+
+    # Medians for held parameters
+    med_Lsp   = float(np.median(Lsp))
+    med_slabL = float(np.median(slabL))
+    med_Rmin  = float(np.median(Rmin))
+    med_slabD = float(np.median(slabD))
+    med_dip   = float(np.median(dip))
+    med_w     = float(np.median(w_seg))
+    med_H     = float(np.median(H_seg))
+    med_ob    = float(np.median(ob_seg))
+    med_rp    = float(np.median(rp_seg))
+
+    N = 200
+
+    def _vt(vc_m, lsp_arr, slabl_arr, rmin_arr, H_arr, ob_arr, rp_arr):
+        vsp = compute_vsp_withDP(
+            formulation, vc_m, h_fixed, visc_asthen, visc_lith,
+            H_arr, lsp_arr, rmin_arr, slabl_arr, slabl_arr,
+            med_dip, ob_arr, DP_ref, visc_asthen_ref,
+            w_ref, trenchv_ref, med_w, med_slabD,
+            yield_stress, pre, rp_arr,
+        )
+        return vc_m / vel_converter - vsp
+
+    # Age sweep: recompute thermal quantities
+    age_range = np.linspace(5.0, 150.0, N)
+    H_age  = np.array([compute_plate_isotherm(a, 1300, 1e-6, 1200) * 1e3 for a in age_range])
+    ob_age = np.array([compute_plate_buoyancy(a, 1300, 1e-6, 3e-5, 3300) for a in age_range])
+    if include_ridge_push:
+        rp_age = (g * rho0 * alpha * dT
+                  * (1.0 + (2.0 * rho0 * alpha * dT) / (np.pi * (rho0 - rhoW)))
+                  * kappa * (age_range * ma_to_s))
+    else:
+        rp_age = np.zeros(N)
+
+    panels = [
+        dict(
+            x_data=Lsp / 1e3, xlabel=r'$L_{SP}$ [km]',
+            lsp=np.linspace(300e3, 12000e3, N),
+            slabl=np.full(N, med_slabL), rmin=np.full(N, med_Rmin),
+            H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
+            x_scale=1e-3,
+        ),
+        dict(
+            x_data=slabL / 1e3, xlabel=r'$L_{slab}$ [km]',
+            lsp=np.full(N, med_Lsp),
+            slabl=np.linspace(100e3, 1500e3, N), rmin=np.full(N, med_Rmin),
+            H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
+            x_scale=1e-3,
+        ),
+        dict(
+            x_data=age_seg, xlabel=r'$age_{SP}$ [Ma]',
+            lsp=np.full(N, med_Lsp), slabl=np.full(N, med_slabL), rmin=np.full(N, med_Rmin),
+            H=H_age, ob=ob_age, rp=rp_age,
+            x_scale=1.0,   # already in Ma
+        ),
+        dict(
+            x_data=Rmin / 1e3, xlabel=r'$R_{min}$ [km]',
+            lsp=np.full(N, med_Lsp), slabl=np.full(N, med_slabL),
+            rmin=np.linspace(50e3, 600e3, N),
+            H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
+            x_scale=1e-3,
+        ),
+    ]
+    # For the age panel the sweep x-axis is age_range; others derive from the SI arrays
+    panels[0]['x_curve'] = panels[0]['lsp'] * 1e-3
+    panels[1]['x_curve'] = panels[1]['slabl'] * 1e-3
+    panels[2]['x_curve'] = age_range
+    panels[3]['x_curve'] = panels[3]['rmin'] * 1e-3
+
+    vc_curves   = [1.0, 5.0, 10.0]   # cm/yr
+    crv_colors  = ['#E87722', '#C0392B', '#7B241C']
+    crv_labels  = [r'$V_c$ = {} cm/yr'.format(v) for v in vc_curves]
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8), constrained_layout=True)
+    ax_list = axes.flatten()
+
+    sc = None
+    for ax, p in zip(ax_list, panels):
+        for vc_cmyr, color, label in zip(vc_curves, crv_colors, crv_labels):
+            vc_m = vc_cmyr * vel_converter
+            vt_c = _vt(vc_m, p['lsp'], p['slabl'], p['rmin'], p['H'], p['ob'], p['rp'])
+            ax.plot(p['x_curve'], vt_c, color=color, lw=2, label=label)
+
+        sc = ax.scatter(
+            p['x_data'], vt_obs,
+            c=vc_obs_cmyr, cmap='YlOrRd', vmin=0.0, vmax=15.0,
+            s=14, alpha=0.85, zorder=3, linewidths=0,
+        )
+        ax.axhline(0, color='grey', lw=0.8, ls='--', zorder=1)
+        ax.set_xlabel(p['xlabel'])
+        ax.set_ylabel(r'$V_T$ [cm/yr]')
+        ax.set_ylim(-20, 20)
+        for spine in ['top', 'right']:
+            ax.spines[spine].set_visible(False)
+
+    ax_list[0].legend(fontsize=8, frameon=False)
+
+    if sc is not None:
+        fig.colorbar(sc, ax=ax_list.tolist(), label=r'$V_c$ [cm/yr]',
+                     fraction=0.015, pad=0.02, shrink=0.6)
+
+    frame_label = vt_ref_label.upper() if vt_ref_label else ''
+    fig.suptitle(title if title else '{} — VT vs. parameters'.format(frame_label))
+
+    ensure_parent_dir(output_path)
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+
+
 def save_misfit_heatmap(
     sign,
     rms,
