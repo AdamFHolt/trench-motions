@@ -95,26 +95,66 @@ def compute_metrics(pred_path, obs_map, decimals, neutral):
     }
 
 
-def plot_metric_bar(rows, metric_key, ylabel, output_path, title):
-    suites = [r['suite'] for r in rows]
-    vt_refs = [r['vt_ref'] for r in rows]
-    if len(set(vt_refs)) == 1:
-        labels = suites
-    elif len(set(suites)) == 1:
-        labels = vt_refs
-    else:
-        labels = ['{}|{}'.format(s, v) for s, v in zip(suites, vt_refs)]
-    vals = [float(r[metric_key]) for r in rows]
-    x = np.arange(len(rows))
+MODEL_TO_FORMULATION = {
+    'viscous': 'F1: viscous',
+    'plastic': 'F2: plastic',
+    'viscous_LspShear': 'F3: viscous_LspShear',
+    'viscous_VspShear': 'F4: viscous_VspShear',
+}
 
-    fig, ax = plt.subplots(figsize=(max(8, 1.25 * len(rows)), 4.8), constrained_layout=True)
-    bars = ax.bar(x, vals, color='#4C78A8', edgecolor='#1F2A44', linewidth=0.8, alpha=0.92)
+FORMULATION_COLORS = {
+    'F1: viscous':          '#4C78A8',
+    'F2: plastic':          '#F58518',
+    'F3: viscous_LspShear': '#54A24B',
+    'F4: viscous_VspShear': '#B279A2',
+}
+
+REF_FRAME_ORDER = ['hs3', 'nnr', 'sa']
+
+
+def plot_grouped_metric_bar(rows, metric_key, ylabel, output_path, title, lower_is_better=True):
+    """Grouped bar chart: ref-frames on x-axis, one bar cluster per formulation."""
+    # Collect unique formulations in canonical F1→F2→F3→F4 order
+    canonical_order = list(MODEL_TO_FORMULATION.values())
+    seen = dict.fromkeys(r.get('formulation', r['model']) for r in rows)
+    formulations = [f for f in canonical_order if f in seen]
+    formulations += [f for f in seen if f not in formulations]
+    ref_frames = [f for f in REF_FRAME_ORDER if any(r['vt_ref'] == f for r in rows)]
+    ref_frames += [f for f in dict.fromkeys(r['vt_ref'] for r in rows) if f not in ref_frames]
+
+    n_groups = len(ref_frames)
+    n_bars = len(formulations)
+    bar_width = 0.8 / n_bars
+    x = np.arange(n_groups)
+
+    fig, ax = plt.subplots(figsize=(max(7, 2.0 * n_groups), 4.8), constrained_layout=True)
     ax.set_axisbelow(True)
     ax.grid(axis='y', linestyle='--', linewidth=0.6, alpha=0.4)
+
+    # Build lookup: (vt_ref, formulation) -> best value across duplicate runs
+    best_fn = min if lower_is_better else max
+    lookup = {}
+    for r in rows:
+        key = (r['vt_ref'], r.get('formulation', r['model']))
+        val = float(r[metric_key])
+        if key not in lookup:
+            lookup[key] = val
+        else:
+            lookup[key] = best_fn(lookup[key], val)
+
+    for i, form in enumerate(formulations):
+        vals = [lookup.get((rf, form), float('nan')) for rf in ref_frames]
+        offsets = x + (i - (n_bars - 1) / 2.0) * bar_width
+        color = FORMULATION_COLORS.get(form, '#888888')
+        ax.bar(offsets, vals, width=bar_width * 0.9,
+               color=color, edgecolor='#1F2A44', linewidth=0.6, alpha=0.92,
+               label=form)
+
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, rotation=30, ha='right')
+    ax.set_xticklabels(ref_frames)
     ax.set_ylabel(ylabel)
     ax.set_title(title)
+    ax.legend(title='Formulation', frameon=False, fontsize=8)
     for spine in ['top', 'right']:
         ax.spines[spine].set_visible(False)
 
@@ -168,10 +208,13 @@ def main():
         obs_map = build_observed_map(obs_path, decimals)
         metrics = compute_metrics(pred_path, obs_map, decimals, args.neutral)
 
+        formulation = MODEL_TO_FORMULATION.get(model, model)
+
         row = {
             'suite': suite,
             'vt_ref': vt_ref,
             'model': model,
+            'formulation': formulation,
             'predicted_file': pred_path,
         }
         row.update(metrics)
@@ -184,6 +227,7 @@ def main():
         'suite',
         'vt_ref',
         'model',
+        'formulation',
         'n',
         'rmse_cm_yr',
         'mae_cm_yr',
@@ -198,24 +242,25 @@ def main():
         for row in rows:
             writer.writerow(row)
 
-    plot_metric_bar(
+    plot_grouped_metric_bar(
         rows,
         metric_key='rmse_cm_yr',
         ylabel='RMSE (cm/yr)',
-        title='RMSE by Run',
-        output_path=os.path.join(args.output_dir, 'rmse_by_run.png'),
+        title='RMSE by Formulation × Reference Frame',
+        output_path=os.path.join(args.output_dir, 'rmse_by_formulation.png'),
     )
-    plot_metric_bar(
+    plot_grouped_metric_bar(
         rows,
         metric_key='sign_match_count',
         ylabel='Correct Sign Locations (#)',
-        title='Correct Sign Locations by Run',
-        output_path=os.path.join(args.output_dir, 'sign_match_by_run.png'),
+        title='Correct Sign Locations by Formulation × Reference Frame',
+        output_path=os.path.join(args.output_dir, 'sign_match_by_formulation.png'),
+        lower_is_better=False,
     )
 
     print('Wrote {}'.format(csv_path))
-    print('Wrote {}'.format(os.path.join(args.output_dir, 'rmse_by_run.png')))
-    print('Wrote {}'.format(os.path.join(args.output_dir, 'sign_match_by_run.png')))
+    print('Wrote {}'.format(os.path.join(args.output_dir, 'rmse_by_formulation.png')))
+    print('Wrote {}'.format(os.path.join(args.output_dir, 'sign_match_by_formulation.png')))
 
 
 if __name__ == '__main__':

@@ -20,8 +20,8 @@ make run-matrix-with-summary
 3. Look at results:
 - Sweep products: `plots/<hs3|nnr|sa>/<model>/param-sweep/...`
 - Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/...`
-- Sweeprun-matrix summary table: `plots/summary/param-sweep/matrix_summary.csv`
-- Sweep summary plots: `plots/summary/param-sweep/*.png`
+- Summary table: `plots/summary/matrix_summary.csv`
+- Summary plots: `plots/summary/rmse_by_formulation.png`, `plots/summary/sign_match_by_formulation.png`
 
 4. Optional sweep only (no summary step):
 ```bash
@@ -46,7 +46,7 @@ make run-matrix-maps-with-summary
 - Active outputs:
   - `plots/<hs3|nnr|sa>/<model>/param-sweep/` for parameter sweeps.
   - `plots/<hs3|nnr|sa>/<model>/maps/` for map products and predicted trench-motion tables.
-  - `plots/summary/param-sweep/` and `plots/summary/maps/` for summary products.
+  - `plots/summary/` for summary CSV and grouped bar plots.
   - direct script runs without `--out-prefix` write under `plots/<vt_ref>/<model>/...`.
 - Archived generated outputs: `archive/generated/`.
 - Archived reference files: `archive/reference/`.
