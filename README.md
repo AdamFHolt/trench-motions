@@ -1,4 +1,4 @@
-# trench-motions (subduction rates)
+# trench-motions 
 
 This repository contains analytical subduction/trench-motion modeling scripts and supporting datasets.
 
