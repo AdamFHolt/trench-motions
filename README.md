@@ -18,10 +18,9 @@ make run-matrix-with-summary
 ```
 
 3. Look at results:
-- Sweep products: `plots/<hs3|nnr|sa>/<model>/param-sweep/...`
-- Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/...`
-- Summary table: `plots/summary/matrix_summary.csv`
-- Summary plots: `plots/summary/rmse_by_formulation.png`, `plots/summary/sign_match_by_formulation.png`
+- Sweep products (heatmaps, vt-param plots, diagnostics): `plots/<hs3|nnr|sa>/<model>/param-sweep/`
+- Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/`
+- Summary table and bar plots: `plots/summary/`
 
 4. Optional sweep only (no summary step):
 ```bash

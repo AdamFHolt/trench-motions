@@ -579,7 +579,8 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
         ax.axhline(0, color='grey', lw=0.8, ls='--', zorder=1)
         ax.set_xlabel(p['xlabel'])
         ax.set_ylabel(r'$V_T$ [cm/yr]')
-        ax.set_ylim(-20, 20)
+        ax.set_xlim(left=0)
+        ax.set_ylim(-10, 10)
         for spine in ['top', 'right']:
             ax.spines[spine].set_visible(False)
 
@@ -589,8 +590,8 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
         fig.colorbar(sc, ax=ax_list.tolist(), label=r'$V_c$ [cm/yr]',
                      fraction=0.015, pad=0.02, shrink=0.6)
 
-    frame_label = vt_ref_label.upper() if vt_ref_label else ''
-    fig.suptitle(title if title else '{} — VT vs. parameters'.format(frame_label))
+    if title:
+        fig.suptitle(title)
 
     ensure_parent_dir(output_path)
     fig.savefig(output_path, dpi=150)

@@ -38,7 +38,7 @@ make run-matrix FORMULATIONS=1 REF_FRAMES=nnr
 | `compute_rates_single.py` | Single deterministic run with fixed viscosity values. |
 | `functions.py` | Physics engine — `compute_vsp_withDP()` implements all 4 formulations. |
 | `workflow_common.py` | Shared data prep: VT column mapping, segment arrays, depth/dip interpolation. |
-| `plotting_functions.py` | `save_quick_plot()`, `save_misfit_heatmap()`, `save_trench_motion_map()`. |
+| `plotting_functions.py` | `save_quick_plot()`, `save_misfit_heatmap()`, `save_trench_motion_map()`, `save_vt_param_plot()`. |
 | `matrix_summary.py` | Aggregates sweep results across all frames/models into CSV + bar plots. |
 
 ## Formulations (active set 1–4)
@@ -57,10 +57,9 @@ All formulations include dynamic pressure (DP) back-pressure parameterised from 
 ## Output layout
 
 ```
-plots/<hs3|nnr|sa>/<model>/param-sweep/   # misfit heatmaps and best-fit diagnostics
+plots/<hs3|nnr|sa>/<model>/param-sweep/   # misfit heatmaps, vt_param plots, best-fit diagnostics
 plots/<hs3|nnr|sa>/<model>/maps/          # global maps and prediction tables (.txt)
-plots/summary/param-sweep/               # matrix_summary.csv, rmse_by_run.png, sign_match_by_run.png
-plots/summary/maps/                      # summary across map runs
+plots/summary/                           # matrix_summary.csv, rmse_by_formulation.png, sign_match_by_formulation.png
 plots/sketch/                            # hand-drawn / reference figures (tracked in git)
 ```
 
@@ -84,8 +83,8 @@ Or set `DATASETS_DIR` to a root containing `age/age.3.6.NaN.grd` and `plate_boun
 
 ## Next steps
 
-### i) Matrix summary — cover all formulations and reference frames
-`matrix_summary.py` currently aggregates across reference frames but the bar plots should also break out formulations side-by-side (or grouped). Goal: a single figure showing RMSE and sign-match for every (formulation × ref-frame) combination so the best model can be selected at a glance.
+### ~~i) Matrix summary — cover all formulations and reference frames~~ ✓ done
+Grouped bar plots (`rmse_by_formulation.png`, `sign_match_by_formulation.png`) in `plots/summary/`.
 
 ### ii) Dataset audit — which trenches are included/excluded
 Understand which of the ~160 Lallemand segments make it into the active set (~120) and why the others are dropped (missing dip, Rmin, age, vt, etc.). Useful outputs:
@@ -93,8 +92,8 @@ Understand which of the ~160 Lallemand segments make it into the active set (~12
 - Distribution plots of key parameters (age, dip, Rmin, Lsp, slabD) for included segments
 - Flag segments where observed vt is missing in one or more reference frames
 
-### iii) Vt vs. parameter plots (model curves + data)
-Reproduce `plots/sketch/rates_samodel_no_depth_cutoff_LithVisc5e+22_AsthVisc1e+21.png`: 2×2 panel showing $V_T$ vs. $L_{sp}$, $L_{slab}$, $age_{SP}$, $R_{min}$, with model curves for representative $V_c$ values (1, 5, 10 cm/yr) and observed data coloured by $V_c$. One figure per (formulation × ref-frame) best-fit case. Add to `plotting_functions.py` as `save_vt_param_plot()`.
+### ~~iii) Vt vs. parameter plots (model curves + data)~~ ✓ done
+`save_vt_param_plot()` in `plotting_functions.py`. Called automatically from `compute_rates_misfit.py`; outputs to `plots/<vt_ref>/<model>/param-sweep/vt_param_*.png`.
 
 ### iv) Collaborator handoff — clean up and document
 - Confirm all scripts run end-to-end from a clean clone (`make run-matrix-with-summary`)
