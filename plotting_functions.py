@@ -381,6 +381,159 @@ def plot_trench_panel(ax, lon, lat, speed, azim, title, age_grid, pb_segments, s
     return q, boundary_patch
 
 
+def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
+                          formulation, visc_lith, visc_asthen, h,
+                          DP_ref, visc_asthen_ref, w_ref, trenchv_ref,
+                          yield_stress, vsp_best,
+                          output_path, datasets_dir=''):
+    """
+    Global Robinson map of force-balance pie charts, one per subduction zone.
+
+    Pie area ∝ total driving force (slab pull + ridge push) for that zone.
+    Wedges (driving → resisting):
+      slab pull (red) | ridge push (orange) | bending (blue) | plate drag (teal) | slab drag (purple)
+
+    Parameters
+    ----------
+    vsp_best : 1-D array, cm/yr, length n  (best-fit predicted slab velocity per segment)
+    All other array inputs have shape (n, 1) matching the segments dict.
+    """
+    import re
+    from matplotlib.patches import Patch
+
+    g = 9.81
+    vel_converter = 0.01 / (365. * 24. * 60. * 60.)
+
+    seg_names = segments.get('seg_names')
+    if seg_names is None:
+        raise ValueError('segments dict must contain seg_names; pass seg_names_raw to build_segment_arrays')
+
+    Lsp   = segments['Lsp'][:, 0]
+    slabD = segments['slabD'][:, 0]
+    vc    = segments['vc'][:, 0]    # m/s
+    Rmin  = segments['Rmin'][:, 0]
+    slabL = segments['slabL'][:, 0]
+    latlon = segments['latlon']     # (n, 2): lat, lon
+
+    H_1d  = H[:, 0]
+    obuoy = oceanic_buoy[:, 0]
+    rp    = ridge_push[:, 0]
+    vsp_ms = vsp_best * vel_converter   # cm/yr → m/s
+
+    # Effective channel thickness per formulation
+    if formulation == 3:
+        hsp_ref, h0, Lsp_ref = 250e3, 100e3, 5000e3
+        h_eff = h0 + Lsp * (hsp_ref - h0) / Lsp_ref
+    elif formulation == 4:
+        h0, hsp_ref = 150e3, 200e3
+        m_slope = (hsp_ref - h0) / (5.0 * vel_converter)  # slope: dh/d(vsp)
+        h_eff = h0 + m_slope * np.abs(vsp_ms)
+    else:
+        h_eff = np.full_like(Lsp, h)
+
+    # Force components in N/m (force per unit trench length)
+    F_sp    = slabD * obuoy * g
+    F_rp    = rp
+    if formulation == 2:
+        F_bend = (1./6.) * (H_1d**2 / Rmin) * yield_stress
+    else:
+        F_bend = (2./3.) * (H_1d**3 / Rmin**3) * visc_lith * np.abs(vc)
+    F_pdrag = 2.0 * np.abs(vc) * slabL * (visc_asthen / h_eff)
+    F_sdrag = visc_asthen * (Lsp / h_eff) * np.abs(vsp_ms)
+
+    forces = np.column_stack([F_sp, F_rp, F_bend, F_pdrag, F_sdrag])   # (n, 5)
+
+    # Group segments by zone (strip trailing digits from name, e.g. 'JAP3'→'JAP')
+    zone_of = [re.sub(r'\d+$', '', name) for name in seg_names]
+    unique_zones = list(dict.fromkeys(zone_of))
+
+    zone_lats, zone_lons, zone_f = [], [], []
+    for zone in unique_zones:
+        idx = [i for i, z in enumerate(zone_of) if z == zone]
+        zone_lats.append(latlon[idx, 0].mean())
+        zone_lons.append(latlon[idx, 1].mean())
+        zone_f.append(np.abs(forces[idx]).mean(axis=0))
+
+    zone_lats = np.array(zone_lats)
+    zone_lons = np.array(zone_lons)
+    zone_f    = np.array(zone_f)        # (nzones, 5)
+    total_driving = zone_f[:, 0] + zone_f[:, 1]
+
+    # ----- Figure & map -----
+    fig, ax = plt.subplots(figsize=(14, 7))
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+    bpatch, bx, by = make_map_boundary_patch(ax)
+    ax.set_xlim(float(bx.min()), float(bx.max()))
+    ax.set_ylim(float(by.min()), float(by.max()))
+    ax.set_aspect('equal', adjustable='box')
+
+    _, pb_file = resolve_dataset_files(datasets_dir)
+    if pb_file:
+        seg_lons_pb, seg_lats_pb = parse_multisegment_gmt(pb_file)
+        for x_pb, y_pb in zip(seg_lons_pb, seg_lats_pb):
+            x_pb = np.asarray(x_pb)
+            y_pb = np.asarray(y_pb)
+            mask = x_pb >= LON_MIN
+            if np.sum(mask) < 2:
+                continue
+            px, py = project_robinson(x_pb[mask], y_pb[mask])
+            line, = ax.plot(px, py, color='#cccccc', lw=0.4, zorder=1)
+            line.set_clip_path(bpatch)
+
+    # ----- Pie charts -----
+    colors_5 = ['#d62728', '#ff7f0e', '#1f77b4', '#17becf', '#9467bd']
+    pie_max, pie_min_sz = 0.065, 0.025   # axes-fraction diameter bounds
+    drive_norm = total_driving / total_driving.max()
+
+    # Force transforms to be valid we need axes limits set (done above)
+    for i in range(len(unique_zones)):
+        lati = zone_lats[i]
+        loni = zone_lons[i]
+        if loni < 0:
+            loni += 360.0
+        if loni < LON_MIN or loni > LON_MAX or lati < LAT_MIN or lati > LAT_MAX:
+            continue
+
+        xm, ym = project_robinson(np.array([loni]), np.array([lati]))
+        xm, ym = float(xm[0]), float(ym[0])
+
+        # Data coords → axes-fraction coords
+        disp = ax.transData.transform([[xm, ym]])
+        ax_frac = ax.transAxes.inverted().transform(disp)[0]
+        fx, fy = float(ax_frac[0]), float(ax_frac[1])
+        if not (0.01 < fx < 0.99 and 0.01 < fy < 0.99):
+            continue
+
+        diam = pie_min_sz + (pie_max - pie_min_sz) * float(drive_norm[i])
+        ax_pie = ax.inset_axes([fx - diam / 2, fy - diam / 2, diam, diam])
+        fvals = zone_f[i]
+        total = fvals.sum()
+        if total <= 0:
+            continue
+        ax_pie.pie(
+            fvals / total,
+            colors=colors_5,
+            startangle=90,
+            wedgeprops={'linewidth': 0.4, 'edgecolor': 'white'},
+        )
+        ax_pie.set_aspect('equal')
+        ax_pie.patch.set_visible(False)
+
+    # Legend
+    labels = ['Slab pull', 'Ridge push', 'Bending', 'Plate drag', 'Slab drag']
+    handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_5, labels)]
+    ax.legend(handles=handles, loc='lower left', fontsize=8, frameon=True,
+              bbox_to_anchor=(0.0, 0.01))
+    ax.text(0.98, 0.01, 'Pie area ∝ slab pull + ridge push',
+            transform=ax.transAxes, ha='right', va='bottom', fontsize=7, color='0.5')
+
+    ensure_parent_dir(output_path)
+    fig.savefig(output_path, dpi=120, bbox_inches='tight', pad_inches=0.05)
+    plt.close(fig)
+
+
 def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, datasets_dir='', output_path=None):
     predicted_txt = predicted_base + '.txt'
     output_png = output_path if output_path is not None else predicted_base + '.png'

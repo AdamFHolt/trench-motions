@@ -4,7 +4,7 @@ import os, numpy as np
 import sys, tempfile, shutil
 import yaml
 from functions import compute_vsp_withDP
-from plotting_functions import save_misfit_heatmap, save_quick_plot, save_trench_motion_map, save_vt_param_plot
+from plotting_functions import save_misfit_heatmap, save_quick_plot, save_trench_motion_map, save_vt_param_plot, save_force_budget_map
 from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
 
 
@@ -222,6 +222,7 @@ for i in range(0,len(lith_viscs)):
 
 data_name = 'data/Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.txt'
 data = np.genfromtxt(data_name) # see spreadsheet for column details
+seg_names_raw = np.genfromtxt(data_name, dtype=str, usecols=0)
 vt_col = get_vt_col(vt_ref)
 data_vt = build_vt_table_from_tnew(data, vt_ref)
 preprocess_data_table(data, limit_max_depth, const_slab_depth, use_avg_Rmin, interpolate_shallow_dip)
@@ -230,7 +231,7 @@ max_age = 1000
 if limit_max_age == 1:
 	max_age = 90.
 
-segments = build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_slabL_using_dip)
+segments = build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_slabL_using_dip, seg_names_raw=seg_names_raw)
 n = segments['n']
 num = segments['num']
 Lsp = segments['Lsp']
@@ -387,6 +388,27 @@ try:
 except Exception as exc:
 	print("warning: quick plot generation failed ({})".format(exc))
 
+# Force budget map (one pie per zone, sized by driving force)
+force_budget_name = suite_out_path('best-fit', 'force_budget' + DP_string + RP_string + param_suffix + '.png')
+visc_lith_best = 10**rms_lith_visc
+visc_asthen_best = 10**rms_asthen_visc
+vsp_best = compute_vsp_withDP(formulation, vc, h, visc_asthen_best, visc_lith_best, H, Lsp,
+	Rmin, slabL, slabL_buoy, dip, oceanic_buoy, DP_ref, visc_asthen_ref,
+	w_ref, trenchv_ref, w, slabD, rms_yield_stress*1e6, pre, ride_push)
+try:
+	save_force_budget_map(
+		segments=segments, H=H, oceanic_buoy=oceanic_buoy, ridge_push=ride_push,
+		formulation=formulation,
+		visc_lith=visc_lith_best, visc_asthen=visc_asthen_best, h=h,
+		DP_ref=DP_ref, visc_asthen_ref=visc_asthen_ref, w_ref=w_ref, trenchv_ref=trenchv_ref,
+		yield_stress=rms_yield_stress*1e6,
+		vsp_best=vsp_best[:, 0],
+		output_path=force_budget_name,
+		datasets_dir=os.environ.get('DATASETS_DIR', ''),
+	)
+except Exception as exc:
+	print("warning: force budget map failed ({})".format(exc))
+
 if skip_map:
 	pass
 else:
@@ -404,6 +426,6 @@ else:
 		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
-outputs = "misfit heatmap, vt_param, correlation" + ("" if skip_map else ", map")
+outputs = "misfit heatmap, vt_param, correlation, force_budget" + ("" if skip_map else ", map")
 print("  → param-sweep: {}  |  best-fit: {}".format(os.path.basename(plot_name), outputs))
 print("------------")
