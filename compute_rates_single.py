@@ -307,11 +307,12 @@ else:
 	np.savetxt(''.join([rms_sep_base, '.txt']), vsps, fmt='%.4f')
 	try:
 		save_trench_motion_map(
-			predicted_base=map_name,
+			predicted_base=rms_name,
 			observed_file=os.path.join('data', 'vt', vt_observed),
 			matches_file=''.join([rms_sep_base, '.txt']),
 			mode='rms',
 			datasets_dir=os.environ.get('DATASETS_DIR', ''),
+			output_path=map_name + '.png',
 		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)

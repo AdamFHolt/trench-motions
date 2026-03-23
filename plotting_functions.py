@@ -369,9 +369,9 @@ def plot_trench_panel(ax, lon, lat, speed, azim, title, age_grid, pb_segments, s
     return q, boundary_patch
 
 
-def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, datasets_dir=''):
+def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, datasets_dir='', output_path=None):
     predicted_txt = predicted_base + '.txt'
-    output_png = predicted_base + '.png'
+    output_png = output_path if output_path is not None else predicted_base + '.png'
     if not os.path.isfile(predicted_txt):
         raise ValueError('Missing predicted file: {}'.format(predicted_txt))
     if not os.path.isfile(observed_file):
@@ -512,7 +512,7 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
         return vc_m / vel_converter - vsp
 
     # Age sweep: recompute thermal quantities
-    age_range = np.linspace(5.0, 150.0, N)
+    age_range = np.linspace(1.0, 150.0, N)
     H_age  = np.array([compute_plate_isotherm(a, 1300, 1e-6, 1200) * 1e3 for a in age_range])
     ob_age = np.array([compute_plate_buoyancy(a, 1300, 1e-6, 3e-5, 3300) for a in age_range])
     if include_ridge_push:
@@ -525,33 +525,28 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
     panels = [
         dict(
             x_data=Lsp / 1e3, xlabel=r'$L_{SP}$ [km]',
-            lsp=np.linspace(300e3, 12000e3, N),
+            lsp=np.linspace(10e3, 12000e3, N),
             slabl=np.full(N, med_slabL), rmin=np.full(N, med_Rmin),
             H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
-            x_scale=1e-3,
         ),
         dict(
             x_data=slabL / 1e3, xlabel=r'$L_{slab}$ [km]',
             lsp=np.full(N, med_Lsp),
-            slabl=np.linspace(100e3, 1500e3, N), rmin=np.full(N, med_Rmin),
+            slabl=np.linspace(10e3, 1500e3, N), rmin=np.full(N, med_Rmin),
             H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
-            x_scale=1e-3,
         ),
         dict(
             x_data=age_seg, xlabel=r'$age_{SP}$ [Ma]',
             lsp=np.full(N, med_Lsp), slabl=np.full(N, med_slabL), rmin=np.full(N, med_Rmin),
             H=H_age, ob=ob_age, rp=rp_age,
-            x_scale=1.0,   # already in Ma
         ),
         dict(
             x_data=Rmin / 1e3, xlabel=r'$R_{min}$ [km]',
             lsp=np.full(N, med_Lsp), slabl=np.full(N, med_slabL),
-            rmin=np.linspace(50e3, 600e3, N),
+            rmin=np.linspace(10e3, 600e3, N),
             H=np.full(N, med_H), ob=np.full(N, med_ob), rp=np.full(N, med_rp),
-            x_scale=1e-3,
         ),
     ]
-    # For the age panel the sweep x-axis is age_range; others derive from the SI arrays
     panels[0]['x_curve'] = panels[0]['lsp'] * 1e-3
     panels[1]['x_curve'] = panels[1]['slabl'] * 1e-3
     panels[2]['x_curve'] = age_range
@@ -562,10 +557,11 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
     crv_labels  = [r'$V_c$ = {} cm/yr'.format(v) for v in vc_curves]
 
     fig, axes = plt.subplots(2, 2, figsize=(10, 8), constrained_layout=True)
+    fig.get_layout_engine().set(hspace=0.04, wspace=0.04)
     ax_list = axes.flatten()
 
     sc = None
-    for ax, p in zip(ax_list, panels):
+    for i, (ax, p) in enumerate(zip(ax_list, panels)):
         for vc_cmyr, color, label in zip(vc_curves, crv_colors, crv_labels):
             vc_m = vc_cmyr * vel_converter
             vt_c = _vt(vc_m, p['lsp'], p['slabl'], p['rmin'], p['H'], p['ob'], p['rp'])
@@ -573,18 +569,20 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
 
         sc = ax.scatter(
             p['x_data'], vt_obs,
-            c=vc_obs_cmyr, cmap='YlOrRd', vmin=0.0, vmax=15.0,
+            c=vc_obs_cmyr, cmap='YlOrRd', vmin=0.0, vmax=10.0,
             s=14, alpha=0.85, zorder=3, linewidths=0,
         )
         ax.axhline(0, color='grey', lw=0.8, ls='--', zorder=1)
-        ax.set_xlabel(p['xlabel'])
-        ax.set_ylabel(r'$V_T$ [cm/yr]')
+        ax.set_xlabel(p['xlabel'], fontsize=11)
+        if i % 2 == 0:
+            ax.set_ylabel(r'$V_T$ [cm/yr]', fontsize=11)
+        ax.tick_params(labelsize=10)
         ax.set_xlim(left=0)
         ax.set_ylim(-10, 10)
         for spine in ['top', 'right']:
             ax.spines[spine].set_visible(False)
 
-    ax_list[0].legend(fontsize=8, frameon=False)
+    ax_list[0].legend(fontsize=9, frameon=False)
 
     if sc is not None:
         fig.colorbar(sc, ax=ax_list.tolist(), label=r'$V_c$ [cm/yr]',
