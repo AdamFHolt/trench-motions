@@ -167,7 +167,7 @@ def main():
     parser = argparse.ArgumentParser(description='Summarize matrix run outputs into tables and plots.')
     parser.add_argument('--runs-dir', default='plots', help='Root directory containing per-reference outputs.')
     parser.add_argument('--vt-ref', default='', help='Reference frame override (hs3|nnr|sa).')
-    parser.add_argument('--suites', default='param-sweep', help='Comma-separated suite names to summarize (e.g., param-sweep,best-fit).')
+    parser.add_argument('--suites', default='best-fit', help='Comma-separated suite names to summarize (e.g., best-fit).')
     parser.add_argument('--output-dir', default='plots/summary', help='Directory for summary CSV/plots.')
     parser.add_argument('--tol', type=float, default=0.1, help='Coordinate rounding tolerance in degrees.')
     parser.add_argument('--neutral', type=float, default=0.3, help='Neutral sign threshold in cm/yr.')
@@ -183,9 +183,9 @@ def main():
     pred_files = []
     file_suite = {}
     for suite in suites:
-        suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', '*', suite, 'rms_*.txt')))
+        suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', '*', suite, 'bestfit*.txt')))
         if not suite_files:
-            suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', suite, 'rms_*.txt')))
+            suite_files = sorted(glob.glob(os.path.join(args.runs_dir, '*', suite, 'bestfit*.txt')))
         for p in suite_files:
             pred_files.append(p)
             file_suite[p] = suite

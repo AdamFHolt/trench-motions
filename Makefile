@@ -5,7 +5,7 @@ MAKEFLAGS += --no-print-directory
 RUN_CONFIG ?= configs/run_params.yaml
 REF_FRAMES ?= hs3 nnr sa
 FORMULATIONS ?= 1 2 3 4
-SUMMARY_SUITES ?= param-sweep
+SUMMARY_SUITES ?= best-fit
 
 .PHONY: venv install run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary
 
@@ -61,9 +61,9 @@ matrix-summary:
 # Sweep (no maps) + summary. Normal daily workflow.
 run-matrix-with-summary:
 	@$(MAKE) run-matrix
-	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep
+	@$(MAKE) matrix-summary SUMMARY_SUITES=best-fit
 
 # Sweep with full maps + summary. Use for final outputs.
 run-matrix-maps-with-summary:
 	@$(MAKE) run-matrix-maps
-	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep,best-fit
+	@$(MAKE) matrix-summary SUMMARY_SUITES=best-fit
