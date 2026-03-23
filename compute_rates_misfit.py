@@ -404,6 +404,6 @@ else:
 		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
-print("  {}".format(os.path.basename(plot_name)))
-print("  {}".format(os.path.basename(vt_param_plot_name)))
+outputs = "misfit heatmap, vt_param, correlation" + ("" if skip_map else ", map")
+print("  → param-sweep: {}  |  best-fit: {}".format(os.path.basename(plot_name), outputs))
 print("------------")
