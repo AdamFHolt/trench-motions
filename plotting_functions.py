@@ -469,7 +469,29 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     ax.set_ylim(float(by.min()), float(by.max()))
     ax.set_aspect('equal', adjustable='box')
 
-    _, pb_file = resolve_dataset_files(datasets_dir)
+    age_grd, pb_file = resolve_dataset_files(datasets_dir)
+
+    # Coastlines derived from NaN boundary in age grid (land = NaN, ocean = valid age)
+    if age_grd:
+        grid_lon, grid_lat, grid_z = load_age_grid(age_grd)
+        lon_mask = grid_lon >= LON_MIN
+        glon_c = grid_lon[lon_mask]
+        gz_c = grid_z[:, lon_mask]
+        slat_c = grid_lat[::4]
+        slon_c = glon_c[::4]
+        sz_c = gz_c[::4, ::4]
+        lons2c, lats2c = np.meshgrid(slon_c, slat_c)
+        gxc, gyc = project_robinson(lons2c, lats2c)
+        land_mask = np.where(np.isnan(sz_c), 1.0, 0.0)
+        try:
+            cs = ax.contour(gxc, gyc, land_mask, levels=[0.5],
+                            colors='#aaaaaa', linewidths=0.5, zorder=2)
+            for col in cs.collections:
+                col.set_clip_path(bpatch)
+        except Exception:
+            pass
+
+    # Plate boundaries — black, bold, behind pies
     if pb_file:
         seg_lons_pb, seg_lats_pb = parse_multisegment_gmt(pb_file)
         for x_pb, y_pb in zip(seg_lons_pb, seg_lats_pb):
@@ -479,15 +501,14 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             if np.sum(mask) < 2:
                 continue
             px, py = project_robinson(x_pb[mask], y_pb[mask])
-            line, = ax.plot(px, py, color='#cccccc', lw=0.4, zorder=1)
+            line, = ax.plot(px, py, color='#222222', lw=0.8, zorder=3)
             line.set_clip_path(bpatch)
 
     # ----- Pie charts -----
     colors_5 = ['#d62728', '#ff7f0e', '#1f77b4', '#17becf', '#9467bd']
-    pie_max, pie_min_sz = 0.065, 0.025   # axes-fraction diameter bounds
+    pie_max, pie_min_sz = 0.085, 0.035   # axes-fraction diameter bounds (bigger)
     drive_norm = total_driving / total_driving.max()
 
-    # Force transforms to be valid we need axes limits set (done above)
     for i in range(len(unique_zones)):
         lati = zone_lats[i]
         loni = zone_lons[i]
@@ -507,7 +528,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             continue
 
         diam = pie_min_sz + (pie_max - pie_min_sz) * float(drive_norm[i])
-        ax_pie = ax.inset_axes([fx - diam / 2, fy - diam / 2, diam, diam])
+        ax_pie = ax.inset_axes([fx - diam / 2, fy - diam / 2, diam, diam], zorder=4)
         fvals = zone_f[i]
         total = fvals.sum()
         if total <= 0:
@@ -526,8 +547,6 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_5, labels)]
     ax.legend(handles=handles, loc='lower left', fontsize=8, frameon=True,
               bbox_to_anchor=(0.0, 0.01))
-    ax.text(0.98, 0.01, 'Pie area ∝ slab pull + ridge push',
-            transform=ax.transAxes, ha='right', va='bottom', fontsize=7, color='0.5')
 
     ensure_parent_dir(output_path)
     fig.savefig(output_path, dpi=120, bbox_inches='tight', pad_inches=0.05)
