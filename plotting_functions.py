@@ -469,27 +469,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     ax.set_ylim(float(by.min()), float(by.max()))
     ax.set_aspect('equal', adjustable='box')
 
-    age_grd, pb_file = resolve_dataset_files(datasets_dir)
-
-    # Coastlines derived from NaN boundary in age grid (land = NaN, ocean = valid age)
-    if age_grd:
-        grid_lon, grid_lat, grid_z = load_age_grid(age_grd)
-        lon_mask = grid_lon >= LON_MIN
-        glon_c = grid_lon[lon_mask]
-        gz_c = grid_z[:, lon_mask]
-        slat_c = grid_lat[::4]
-        slon_c = glon_c[::4]
-        sz_c = gz_c[::4, ::4]
-        lons2c, lats2c = np.meshgrid(slon_c, slat_c)
-        gxc, gyc = project_robinson(lons2c, lats2c)
-        land_mask = np.where(np.isnan(sz_c), 1.0, 0.0)
-        try:
-            cs = ax.contour(gxc, gyc, land_mask, levels=[0.5],
-                            colors='#aaaaaa', linewidths=0.5, zorder=2)
-            for col in cs.collections:
-                col.set_clip_path(bpatch)
-        except Exception:
-            pass
+    _, pb_file = resolve_dataset_files(datasets_dir)
 
     # Plate boundaries — black, bold, behind pies
     if pb_file:
@@ -546,6 +526,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     labels = ['Slab pull', 'Ridge push', 'Bending', 'Plate drag', 'Slab drag']
     handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_5, labels)]
     ax.legend(handles=handles, loc='lower left', fontsize=8, frameon=True,
+              facecolor='white', framealpha=1.0,
               bbox_to_anchor=(0.0, 0.01))
 
     ensure_parent_dir(output_path)
