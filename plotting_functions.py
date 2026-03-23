@@ -390,8 +390,16 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     Global Robinson map of force-balance pie charts, one per subduction zone.
 
     Pie area ∝ total driving force (slab pull + ridge push) for that zone.
-    Wedges (driving → resisting):
-      slab pull (red) | ridge push (orange) | bending (blue) | plate drag (teal) | slab drag (purple)
+    Wedges (driving | resisting):
+      slab pull (red) | ridge push (orange) ||
+      bending (blue) | plate drag (teal) | slab drag (purple) | DP back-pressure (gold)
+
+    The physical force balance is:
+        F_sp + F_rp  =  F_bend + F_pdrag + F_sdrag + F_DP
+    where F_DP = η_A · C_DP · v_t  (v_t = v_sp − v_c, positive = retreat).
+    F_DP is resisting for retreating zones (v_t > 0) and driving for advancing zones
+    (v_t < 0). For advancing zones F_DP is clamped to 0 in the pie; the imbalance
+    reflects that DP is then a net driver (red+orange > 50 %).
 
     Parameters
     ----------
@@ -413,6 +421,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     vc    = segments['vc'][:, 0]    # m/s
     Rmin  = segments['Rmin'][:, 0]
     slabL = segments['slabL'][:, 0]
+    w     = segments['w'][:, 0]
     latlon = segments['latlon']     # (n, 2): lat, lon
 
     H_1d  = H[:, 0]
@@ -432,6 +441,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
         h_eff = np.full_like(Lsp, h)
 
     # Force components in N/m (force per unit trench length)
+    # Physical balance: F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP
+    C_DP    = (slabD * DP_ref * w) / (visc_asthen_ref * w_ref * trenchv_ref)
     F_sp    = slabD * obuoy * g
     F_rp    = rp
     if formulation == 2:
@@ -439,9 +450,15 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     else:
         F_bend = (2./3.) * (H_1d**3 / Rmin**3) * visc_lith * np.abs(vc)
     F_pdrag = 2.0 * np.abs(vc) * slabL * (visc_asthen / h_eff)
+    # Slab channel drag (without C_DP — that belongs to F_dp separately)
     F_sdrag = visc_asthen * (Lsp / h_eff) * np.abs(vsp_ms)
+    # Physical DP back-pressure: η_A · C_DP · v_t, where v_t = v_sp − v_c
+    # Positive (resisting) for retreating zones; negative (driving) for advancing.
+    # Clamp to 0 for advancing zones — the imbalance signals DP is acting as driver.
+    v_t     = vsp_ms - np.abs(vc)
+    F_dp    = np.maximum(visc_asthen * C_DP * v_t, 0.0)
 
-    forces = np.column_stack([F_sp, F_rp, F_bend, F_pdrag, F_sdrag])   # (n, 5)
+    forces = np.column_stack([F_sp, F_rp, F_bend, F_pdrag, F_sdrag, F_dp])   # (n, 6)
 
     # Group segments by zone (strip trailing digits from name, e.g. 'JAP3'→'JAP')
     zone_of = [re.sub(r'\d+$', '', name) for name in seg_names]
@@ -456,8 +473,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
 
     zone_lats = np.array(zone_lats)
     zone_lons = np.array(zone_lons)
-    zone_f    = np.array(zone_f)        # (nzones, 5)
-    total_driving = zone_f[:, 0] + zone_f[:, 1]
+    zone_f    = np.array(zone_f)        # (nzones, 6)
+    total_driving = zone_f[:, 0] + zone_f[:, 1]  # F_sp + F_rp
 
     # ----- Figure & map -----
     fig, ax = plt.subplots(figsize=(14, 7))
@@ -485,7 +502,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             line.set_clip_path(bpatch)
 
     # ----- Pie charts -----
-    colors_5 = ['#d62728', '#ff7f0e', '#1f77b4', '#17becf', '#9467bd']
+    colors_6 = ['#d62728', '#ff7f0e', '#1f77b4', '#17becf', '#9467bd', '#e7ba52']
+    # slab pull, ridge push, bending, plate drag, slab drag, DP back-pressure
     pie_max, pie_min_sz = 0.085, 0.035   # axes-fraction diameter bounds (bigger)
     drive_norm = total_driving / total_driving.max()
 
@@ -515,7 +533,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             continue
         ax_pie.pie(
             fvals / total,
-            colors=colors_5,
+            colors=colors_6,
             startangle=90,
             wedgeprops={'linewidth': 0.4, 'edgecolor': 'white'},
         )
@@ -523,8 +541,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
         ax_pie.patch.set_visible(False)
 
     # Legend
-    labels = ['Slab pull', 'Ridge push', 'Bending', 'Plate drag', 'Slab drag']
-    handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_5, labels)]
+    labels = ['Slab pull', 'Ridge push', 'Bending', 'Plate drag', 'Slab drag', 'DP back-pressure']
+    handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_6, labels)]
     ax.legend(handles=handles, loc='lower left', fontsize=8, frameon=True,
               facecolor='white', framealpha=1.0,
               bbox_to_anchor=(0.0, 0.01))
