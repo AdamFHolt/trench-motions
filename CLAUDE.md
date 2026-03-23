@@ -57,11 +57,13 @@ All formulations include dynamic pressure (DP) back-pressure parameterised from 
 ## Output layout
 
 ```
-plots/<hs3|nnr|sa>/<model>/param-sweep/   # misfit heatmaps, vt_param plots, best-fit diagnostics
-plots/<hs3|nnr|sa>/<model>/maps/          # global maps and prediction tables (.txt)
-plots/summary/                           # matrix_summary.csv, rmse_by_formulation.png, sign_match_by_formulation.png
-plots/sketch/                            # hand-drawn / reference figures (tracked in git)
+plots/<hs3|nnr|sa>/<model>/param-sweep/   # misfit heatmaps only (withRP only)
+plots/<hs3|nnr|sa>/<model>/best-fit/      # bestfit.*.txt, correlation.*.png, vt_param.*.png, map.*.png
+plots/summary/                            # matrix_summary.csv, rmse_by_formulation.png, sign_match_by_formulation.png
+plots/sketch/                             # hand-drawn / reference figures (tracked in git)
 ```
+
+`matrix_summary.py` reads `bestfit.*.txt` from `best-fit/` directories (suite `best-fit`).
 
 ## Latest results (Formulation 1, viscous, DP_ref=2.35e7, with ridge push)
 
@@ -79,6 +81,8 @@ Map plotting auto-detects:
 
 Or set `DATASETS_DIR` to a root containing `age/age.3.6.NaN.grd` and `plate_boundaries/bird_PB2002/PB2002_tdiddy.gmt`. Maps run without these files, just without the background overlays.
 
+Age grid and plate boundaries are cached in memory across map calls (module-level dicts in `plotting_functions.py`), so they are only read from disk once per process.
+
 ---
 
 ## Next steps
@@ -93,7 +97,7 @@ Understand which of the ~160 Lallemand segments make it into the active set (~12
 - Flag segments where observed vt is missing in one or more reference frames
 
 ### ~~iii) Vt vs. parameter plots (model curves + data)~~ ✓ done
-`save_vt_param_plot()` in `plotting_functions.py`. Called automatically from `compute_rates_misfit.py`; outputs to `plots/<vt_ref>/<model>/param-sweep/vt_param_*.png`.
+`save_vt_param_plot()` in `plotting_functions.py`. Outputs to `plots/<vt_ref>/<model>/best-fit/vt_param_*.png`.
 
 ### iv) Collaborator handoff — clean up and document
 - Confirm all scripts run end-to-end from a clean clone (`make run-matrix-with-summary`)
