@@ -291,8 +291,11 @@ for k in range(0,len(lith_viscs)):
 			signs_asthen_visc = np.log10(visc_asthen);
 			signs_yield_stress = yield_sigma/1e6;
 	
-print("------------")
-print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
+if formulation == 2:
+	best_params = 'σ_Y={:.0f} MPa, log10(η_A)={:.3g}'.format(rms_yield_stress, rms_asthen_visc)
+else:
+	best_params = 'log10(η_L)={:.3g}, log10(η_A)={:.3g}'.format(rms_lith_visc, rms_asthen_visc)
+print("RMS {:.2f} cm/yr, signs {:d}/{:d}  [min RMS: {}]".format(rms_min, num_sign_matches_max, n, best_params))
 
 if formulation == 2:
 	signs_y_param = signs_yield_stress
@@ -345,9 +348,13 @@ save_misfit_heatmap(
 	output_path=plot_name,
 )
 
+if formulation == 2:
+	vt_param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
+else:
+	vt_param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
 vt_param_plot_name = suite_out_path(
 	'param-sweep',
-	'vt_param_' + os.path.basename(plot_name),
+	'vt_param' + DP_string + RP_string + vt_param_suffix + '.png',
 )
 try:
 	save_vt_param_plot(
@@ -383,9 +390,8 @@ except Exception as exc:
 	print("warning: quick plot generation failed ({})".format(exc))
 
 if skip_map:
-	print("skipping map plotting (--skip-map)")
+	pass
 else:
-	print("plotting map")
 	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
 	rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
@@ -399,4 +405,6 @@ else:
 		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
-print("output: %s" % plot_name)
+print("  {}".format(os.path.basename(plot_name)))
+print("  {}".format(os.path.basename(vt_param_plot_name)))
+print("------------")
