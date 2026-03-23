@@ -133,15 +133,25 @@ def resolve_dataset_files(datasets_dir=''):
     return age_grd if os.path.isfile(age_grd) else None, pb_file if os.path.isfile(pb_file) else None
 
 
+_age_grid_cache = {}
+_pb_cache = {}
+
+
 def load_age_grid(age_grd):
+    if age_grd in _age_grid_cache:
+        return _age_grid_cache[age_grd]
     with netcdf_file(age_grd, 'r', mmap=False) as f:
         lon = np.array(f.variables['lon'][:], dtype=float)
         lat = np.array(f.variables['lat'][:], dtype=float)
         z = np.array(f.variables['z'][:], dtype=float)
-    return lon, lat, z
+    result = lon, lat, z
+    _age_grid_cache[age_grd] = result
+    return result
 
 
 def parse_multisegment_gmt(path):
+    if path in _pb_cache:
+        return _pb_cache[path]
     seg_lons = []
     seg_lats = []
     cur_lon = []
@@ -191,7 +201,9 @@ def parse_multisegment_gmt(path):
         if len(lon_seg) - start >= 2:
             out_lons.append(lon_seg[start:])
             out_lats.append(lat_seg[start:])
-    return out_lons, out_lats
+    result = out_lons, out_lats
+    _pb_cache[path] = result
+    return result
 
 
 def arrow_components(speed_mm_yr, azim_deg, scale=VECTOR_LENGTH_SCALE_MM_YR):
@@ -446,7 +458,7 @@ def save_trench_motion_map(predicted_base, observed_file, matches_file, mode, da
         raise ValueError("Unsupported mode '{}'; expected 'signs' or 'rms'.".format(mode))
 
     ensure_parent_dir(output_png)
-    fig.savefig(output_png, dpi=150, bbox_inches='tight', pad_inches=0.02)
+    fig.savefig(output_png, dpi=120, bbox_inches='tight', pad_inches=0.02)
     plt.close(fig)
 
 
