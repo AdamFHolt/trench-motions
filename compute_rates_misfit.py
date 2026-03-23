@@ -316,18 +316,19 @@ else:
 
 if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 plot_name = suite_out_path('param-sweep', plot_name)
-rms_name = suite_out_path('maps', rms_name)
+
+if formulation == 2:
+	param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
+else:
+	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
+bestfit_name = suite_out_path('best-fit', 'bestfit' + DP_string + RP_string + param_suffix)
 save_misfit_heatmap(
 	sign=sign,
 	rms=rms,
@@ -348,13 +349,9 @@ save_misfit_heatmap(
 	output_path=plot_name,
 )
 
-if formulation == 2:
-	vt_param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
-else:
-	vt_param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
 vt_param_plot_name = suite_out_path(
-	'param-sweep',
-	'vt_param' + DP_string + RP_string + vt_param_suffix + '.png',
+	'best-fit',
+	'vt_param' + DP_string + RP_string + param_suffix + '.png',
 )
 try:
 	save_vt_param_plot(
@@ -372,16 +369,16 @@ try:
 except Exception as exc:
 	print("warning: vt_param plot failed ({})".format(exc))
 
-# plot map
-rms_txt_name=''.join([rms_name,'.txt'])
-ensure_parent_dir(rms_txt_name)
-np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')
+# best-fit outputs
+bestfit_txt = bestfit_name + '.txt'
+ensure_parent_dir(bestfit_txt)
+np.savetxt(bestfit_txt, rms_predicted_vts, fmt='%.4f')
 
-vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
-quick_plot_name = ''.join([rms_name, '.quick.png'])
+vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])
+quick_plot_name = bestfit_name + '.quick.png'
 try:
 	save_quick_plot(
-		predicted_path=rms_txt_name,
+		predicted_path=bestfit_txt,
 		observed_path=os.path.join('data', 'vt', vt_observed),
 		output_path=quick_plot_name,
 		title='RMS quick check ({})'.format(vt_ref),
@@ -397,7 +394,7 @@ else:
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
 	try:
 		save_trench_motion_map(
-			predicted_base=rms_name,
+			predicted_base=bestfit_name,
 			observed_file=os.path.join('data', 'vt', vt_observed),
 			matches_file=''.join([rms_sep_base, '.txt']),
 			mode='rms',

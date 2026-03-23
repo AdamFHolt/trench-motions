@@ -66,4 +66,4 @@ run-matrix-with-summary:
 # Sweep with full maps + summary. Use for final outputs.
 run-matrix-maps-with-summary:
 	@$(MAKE) run-matrix-maps
-	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep,maps
+	@$(MAKE) matrix-summary SUMMARY_SUITES=param-sweep,best-fit

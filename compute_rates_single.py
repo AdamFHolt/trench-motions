@@ -119,7 +119,7 @@ while i < len(extra_args):
 
 def out_path(relative_path):
 	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
-	return os.path.join(base_ref_dir, formulation_slug(formulation), 'maps', relative_path)
+	return os.path.join(base_ref_dir, formulation_slug(formulation), 'best-fit', relative_path)
 
 
 def misfit_plot_out_path(filename):
@@ -269,30 +269,31 @@ else:
 
 if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
-	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 plot_name = misfit_plot_out_path(plot_name)
-rms_name = out_path(rms_name)
 
-# plot map
-rms_txt_name=''.join([rms_name,'.txt'])
-ensure_parent_dir(rms_txt_name)
-np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')
+if formulation == 2:
+	param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
+else:
+	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
+rms_name = out_path('bestfit' + DP_string + RP_string + param_suffix)
+
+# best-fit outputs
+bestfit_txt = rms_name + '.txt'
+ensure_parent_dir(bestfit_txt)
+np.savetxt(bestfit_txt, rms_predicted_vts, fmt='%.4f')
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])
 if skip_map:
 	print("skipping map plotting (--skip-map)")
 	try:
 		save_quick_plot(
-			predicted_path=rms_txt_name,
+			predicted_path=bestfit_txt,
 			observed_path=os.path.join('data', 'vt', vt_observed),
 			output_path=plot_name,
 			title='Single-run quick check ({})'.format(vt_ref),
