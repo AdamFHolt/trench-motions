@@ -375,7 +375,7 @@ ensure_parent_dir(bestfit_txt)
 np.savetxt(bestfit_txt, rms_predicted_vts, fmt='%.4f')
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])
-quick_plot_name = bestfit_name + '.quick.png'
+quick_plot_name = suite_out_path('best-fit', 'correlation' + DP_string + RP_string + param_suffix + '.png')
 try:
 	save_quick_plot(
 		predicted_path=bestfit_txt,
