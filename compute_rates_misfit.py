@@ -329,6 +329,7 @@ if formulation == 2:
 else:
 	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
 bestfit_name = suite_out_path('best-fit', 'bestfit' + DP_string + RP_string + param_suffix)
+map_name = suite_out_path('best-fit', 'map' + DP_string + RP_string + param_suffix)
 save_misfit_heatmap(
 	sign=sign,
 	rms=rms,
@@ -394,7 +395,7 @@ else:
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
 	try:
 		save_trench_motion_map(
-			predicted_base=bestfit_name,
+			predicted_base=map_name,
 			observed_file=os.path.join('data', 'vt', vt_observed),
 			matches_file=''.join([rms_sep_base, '.txt']),
 			mode='rms',

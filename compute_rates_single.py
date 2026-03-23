@@ -282,6 +282,7 @@ if formulation == 2:
 else:
 	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
 rms_name = out_path('bestfit' + DP_string + RP_string + param_suffix)
+map_name = out_path('map' + DP_string + RP_string + param_suffix)
 
 # best-fit outputs
 bestfit_txt = rms_name + '.txt'
@@ -306,7 +307,7 @@ else:
 	np.savetxt(''.join([rms_sep_base, '.txt']), vsps, fmt='%.4f')
 	try:
 		save_trench_motion_map(
-			predicted_base=rms_name,
+			predicted_base=map_name,
 			observed_file=os.path.join('data', 'vt', vt_observed),
 			matches_file=''.join([rms_sep_base, '.txt']),
 			mode='rms',
