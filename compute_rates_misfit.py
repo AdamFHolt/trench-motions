@@ -290,9 +290,7 @@ for k in range(0,len(lith_viscs)):
 			signs_lith_visc = np.log10(visc_lith);
 			signs_asthen_visc = np.log10(visc_asthen);
 			signs_yield_stress = yield_sigma/1e6;
-			signs_predicted_vts = np.concatenate((latlon,vt_estimate,azims), axis=1)
-			signs_separated = np.concatenate((latlon,stored_sign_vals), axis=1)
-
+	
 print("------------")
 print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_max,n))
 
@@ -315,22 +313,17 @@ else:
 
 if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.y',str(signs_yield_stress),'_a',str(signs_asthen_visc),'.plastic_bending'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.y',str(rms_yield_stress),'_a',str(rms_asthen_visc),'.plastic_bending'])
 elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoLSP'])
 elif formulation == 4:  # regular, hSP \propto VSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
-	signs_name=''.join(['signs_',str(vt_ref),'model',DP_string,RP_string,'.l',str(signs_lith_visc),'_a10e',str(signs_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 	rms_name=''.join(['rms_',str(vt_ref),'model',DP_string,RP_string,'.l',str(rms_lith_visc),'_a10e',str(rms_asthen_visc),'.viscous_bending_hSPproptoVSP'])
 plot_name = suite_out_path('param-sweep', plot_name)
-signs_name = suite_out_path('maps', signs_name)
 rms_name = suite_out_path('maps', rms_name)
 save_misfit_heatmap(
 	sign=sign,
@@ -373,12 +366,9 @@ except Exception as exc:
 	print("warning: vt_param plot failed ({})".format(exc))
 
 # plot map
-signs_txt_name=''.join([signs_name,'.txt'])
 rms_txt_name=''.join([rms_name,'.txt'])
-ensure_parent_dir(signs_txt_name)
 ensure_parent_dir(rms_txt_name)
-np.savetxt(signs_txt_name, signs_predicted_vts, fmt='%.4f')  
-np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')  
+np.savetxt(rms_txt_name, rms_predicted_vts, fmt='%.4f')
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])  
 quick_plot_name = ''.join([rms_name, '.quick.png'])
@@ -397,18 +387,9 @@ if skip_map:
 else:
 	print("plotting map")
 	tmp_dir = tempfile.mkdtemp(prefix='trench-motions-')
-	signs_sep_base = os.path.join(tmp_dir, 'signs_separated')
 	rms_sep_base = os.path.join(tmp_dir, 'rms_separated')
-	np.savetxt(''.join([signs_sep_base, '.txt']), signs_separated, fmt='%.4f')
 	np.savetxt(''.join([rms_sep_base, '.txt']), rms_separated, fmt='%.4f')
 	try:
-		save_trench_motion_map(
-			predicted_base=signs_name,
-			observed_file=os.path.join('data', 'vt', vt_observed),
-			matches_file=''.join([signs_sep_base, '.txt']),
-			mode='signs',
-			datasets_dir=os.environ.get('DATASETS_DIR', ''),
-		)
 		save_trench_motion_map(
 			predicted_base=rms_name,
 			observed_file=os.path.join('data', 'vt', vt_observed),
