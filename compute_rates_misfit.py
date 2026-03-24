@@ -96,6 +96,7 @@ else:
 i = 0
 vt_ref_override = None
 formulation_override = None
+dp_ref_override = None
 while i < len(extra_args):
 	arg = extra_args[i]
 	if arg == '--vt-ref':
@@ -111,6 +112,13 @@ while i < len(extra_args):
 			print(USAGE)
 			sys.exit(2)
 		formulation_override = int(extra_args[i + 1])
+		i += 2
+	elif arg == '--dp-ref':
+		if i + 1 >= len(extra_args):
+			print("Missing value for --dp-ref")
+			print(USAGE)
+			sys.exit(2)
+		dp_ref_override = float(extra_args[i + 1])
 		i += 2
 	elif arg == '--smoke':
 		smoke_mode = True
@@ -134,16 +142,15 @@ if vt_ref_override:
 	vt_ref = vt_ref_override
 if formulation_override is not None:
 	formulation = formulation_override
+if dp_ref_override is not None:
+	DP_ref = dp_ref_override
 
 
 def formulation_slug(formulation_id):
-	if formulation_id == 1:
-		return 'viscous'
-	if formulation_id == 2:
-		return 'plastic'
-	if formulation_id == 3:
-		return 'viscous_LspShear'
-	raise ValueError("unsupported formulation: {}".format(formulation_id))
+	base = {1: 'viscous', 2: 'plastic', 3: 'viscous_LspShear'}.get(formulation_id)
+	if base is None:
+		raise ValueError("unsupported formulation: {}".format(formulation_id))
+	return base + ('_wDynP' if DP_ref > 0 else '')
 
 
 def suite_out_path(suite, relative_path):

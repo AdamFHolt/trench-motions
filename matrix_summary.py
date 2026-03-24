@@ -96,15 +96,21 @@ def compute_metrics(pred_path, obs_map, decimals, neutral):
 
 
 MODEL_TO_FORMULATION = {
-    'viscous': 'F1: viscous',
-    'plastic': 'F2: plastic',
-    'viscous_LspShear': 'F3: viscous_LspShear',
+    'viscous':                 'F1: viscous',
+    'viscous_wDynP':           'F1: viscous+DP',
+    'plastic':                 'F2: plastic',
+    'plastic_wDynP':           'F2: plastic+DP',
+    'viscous_LspShear':        'F3: viscous_LspShear',
+    'viscous_LspShear_wDynP':  'F3: viscous_LspShear+DP',
 }
 
 FORMULATION_COLORS = {
-    'F1: viscous':          '#4C78A8',
-    'F2: plastic':          '#F58518',
-    'F3: viscous_LspShear': '#54A24B',
+    'F1: viscous':                '#4C78A8',
+    'F1: viscous+DP':             '#9BBBD4',
+    'F2: plastic':                '#F58518',
+    'F2: plastic+DP':             '#FAB97B',
+    'F3: viscous_LspShear':       '#54A24B',
+    'F3: viscous_LspShear+DP':    '#A3D09E',
 }
 
 REF_FRAME_ORDER = ['hs3', 'nnr', 'sa']
@@ -112,7 +118,7 @@ REF_FRAME_ORDER = ['hs3', 'nnr', 'sa']
 
 def plot_grouped_metric_bar(rows, metric_key, ylabel, output_path, title, lower_is_better=True):
     """Grouped bar chart: ref-frames on x-axis, one bar cluster per formulation."""
-    # Collect unique formulations in canonical F1→F2→F3 order
+    # Collect unique formulations in canonical F1→F1+DP→F2→F2+DP→F3→F3+DP order
     canonical_order = list(MODEL_TO_FORMULATION.values())
     seen = dict.fromkeys(r.get('formulation', r['model']) for r in rows)
     formulations = [f for f in canonical_order if f in seen]

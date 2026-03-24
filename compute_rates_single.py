@@ -128,13 +128,10 @@ def misfit_plot_out_path(filename):
 
 
 def formulation_slug(formulation_id):
-	if formulation_id == 1:
-		return 'viscous'
-	if formulation_id == 2:
-		return 'plastic'
-	if formulation_id == 3:
-		return 'viscous_LspShear'
-	raise ValueError("unsupported formulation: {}".format(formulation_id))
+	base = {1: 'viscous', 2: 'plastic', 3: 'viscous_LspShear'}.get(formulation_id)
+	if base is None:
+		raise ValueError("unsupported formulation: {}".format(formulation_id))
+	return base + ('_wDynP' if DP_ref > 0 else '')
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
