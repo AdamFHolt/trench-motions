@@ -90,24 +90,21 @@ Age grid and plate boundaries are cached in memory across map calls (module-leve
 ### ~~i) Matrix summary — cover all formulations and reference frames~~ ✓ done
 Grouped bar plots (`rmse_by_formulation.png`, `sign_match_by_formulation.png`) in `plots/summary/`.
 
-### i-b) Force budget map — finalise (IN PROGRESS, needs physics check)
+### i-b) Force budget map — finalise (physics resolved, rerun needed)
 
 `save_force_budget_map()` in `plotting_functions.py`, called from `compute_rates_misfit.py` at best-fit params.
 Output: `plots/<vt_ref>/<model>/best-fit/force_budget.*.png`
 
-**The sign/physics of the DP term is still unresolved.** Key facts from `docs/force_balance.md`:
+**Physics resolved.** Key facts from `docs/force_balance.md`:
 - Physical balance: `F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP`
 - `F_DP = η_A · C_DP · v_t` where `v_t = v_sp − v_c` (positive = trench retreat)
-- `F_sdrag = η_A · (L_sp/h) · v_sp` (slab channel drag, scales with slab velocity)
+- `F_pdrag = 2η_A · (L/h) · v_sp` (plate drag, scales with **absolute plate velocity** v_sp, not v_c)
+- `F_sdrag = η_A · (L_sp/h) · v_sp` (slab channel drag, scales with v_sp)
+- For **retreating** zones (v_t > 0): F_DP resists (resisting half of pie)
+- For **advancing** zones (v_t < 0): F_DP drives (driving half of pie)
 - The `+η_A·C_DP·v_c` that appears in the numerator when solving for `v_sp` is an **algebraic artifact** of substituting `v_t = v_sp − v_c`, not a physical driving force
 
-**User's note on DP sign:**
-- F_sp + F_rp = exactly 50% of all forces only for a **stationary** trench
-- For **retreating** trench: F_sp + F_rp < 50% (DP acts in the direction of v_sp, i.e., opposite to retreat — so DP is a driver of slab pull, not a resisting force in that sense)
-- For **advancing** trench: F_sp + F_rp > 50% (DP acts against the advance)
-- This needs careful re-derivation before the plot is correct
-
-**TODO:** Re-derive sign of each force component relative to the trench velocity direction, verify balance closes numerically for a single segment, then update `save_force_budget_map()` accordingly.
+**TODO:** Rerun the sweep to regenerate force budget plots with the corrected plate drag (∝ v_sp).
 
 ### ii) Dataset audit — which trenches are included/excluded
 Understand which of the ~160 Lallemand segments make it into the active set (~120) and why the others are dropped (missing dip, Rmin, age, vt, etc.). Useful outputs:

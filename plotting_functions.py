@@ -389,17 +389,17 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     """
     Global Robinson map of force-balance pie charts, one per subduction zone.
 
-    Pie area ∝ total driving force (slab pull + ridge push) for that zone.
+    Pie area ∝ total driving force (slab pull + ridge push + DP if driving).
     Wedges (driving | resisting):
-      slab pull (red) | ridge push (orange) ||
-      bending (blue) | plate drag (teal) | slab drag (purple) | DP back-pressure (gold)
+      slab pull (red) | ridge push (orange) | DP driver (gold, advancing zones only) ||
+      bending (blue) | plate drag (teal) | slab drag (purple) | DP resist (gold, retreating only)
 
     The physical force balance is:
         F_sp + F_rp  =  F_bend + F_pdrag + F_sdrag + F_DP
     where F_DP = η_A · C_DP · v_t  (v_t = v_sp − v_c, positive = retreat).
-    F_DP is resisting for retreating zones (v_t > 0) and driving for advancing zones
-    (v_t < 0). For advancing zones F_DP is clamped to 0 in the pie; the imbalance
-    reflects that DP is then a net driver (red+orange > 50 %).
+    F_DP is split into F_dp_resist (retreating zones, v_t > 0) on the resisting side
+    and F_dp_drive (advancing zones, v_t < 0) on the driving side. The pie always
+    closes at 50/50 driving/resisting.
 
     Parameters
     ----------
@@ -442,6 +442,10 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
 
     # Force components in N/m (force per unit trench length)
     # Physical balance: F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP
+    # where F_DP = η_A · C_DP · v_t, v_t = v_sp − v_c (positive = trench retreat).
+    # For retreating zones (v_t > 0): F_DP resists → resisting side.
+    # For advancing zones (v_t < 0): F_DP drives → driving side (as |F_DP|).
+    # Splitting into F_dp_resist / F_dp_drive ensures the pie always closes at 50/50.
     C_DP    = (slabD * DP_ref * w) / (visc_asthen_ref * w_ref * trenchv_ref)
     F_sp    = slabD * obuoy * g
     F_rp    = rp
@@ -449,16 +453,17 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
         F_bend = (1./6.) * (H_1d**2 / Rmin) * yield_stress
     else:
         F_bend = (2./3.) * (H_1d**3 / Rmin**3) * visc_lith * np.abs(vc)
-    F_pdrag = 2.0 * np.abs(vc) * slabL * (visc_asthen / h_eff)
-    # Slab channel drag (without C_DP — that belongs to F_dp separately)
-    F_sdrag = visc_asthen * (Lsp / h_eff) * np.abs(vsp_ms)
-    # Physical DP back-pressure: η_A · C_DP · v_t, where v_t = v_sp − v_c
-    # Positive (resisting) for retreating zones; negative (driving) for advancing.
-    # Clamp to 0 for advancing zones — the imbalance signals DP is acting as driver.
-    v_t     = vsp_ms - np.abs(vc)
-    F_dp    = np.maximum(visc_asthen * C_DP * v_t, 0.0)
+    F_pdrag  = 2.0 * np.abs(vsp_ms) * slabL * (visc_asthen / h_eff)
+    F_sdrag  = visc_asthen * (Lsp / h_eff) * np.abs(vsp_ms)
+    v_t      = vsp_ms - np.abs(vc)
+    F_dp_true   = visc_asthen * C_DP * v_t          # signed: + retreat, − advance
+    F_dp_resist = np.maximum( F_dp_true, 0.0)       # > 0 for retreating zones
+    F_dp_drive  = np.maximum(-F_dp_true, 0.0)       # > 0 for advancing zones
 
-    forces = np.column_stack([F_sp, F_rp, F_bend, F_pdrag, F_sdrag, F_dp])   # (n, 6)
+    # Column order: [driving side | resisting side]
+    # F_sp, F_rp, F_dp_drive  |  F_bend, F_pdrag, F_sdrag, F_dp_resist
+    forces = np.column_stack([F_sp, F_rp, F_dp_drive,
+                              F_bend, F_pdrag, F_sdrag, F_dp_resist])  # (n, 7)
 
     # Group segments by zone (strip trailing digits from name, e.g. 'JAP3'→'JAP')
     zone_of = [re.sub(r'\d+$', '', name) for name in seg_names]
@@ -473,8 +478,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
 
     zone_lats = np.array(zone_lats)
     zone_lons = np.array(zone_lons)
-    zone_f    = np.array(zone_f)        # (nzones, 6)
-    total_driving = zone_f[:, 0] + zone_f[:, 1]  # F_sp + F_rp
+    zone_f    = np.array(zone_f)        # (nzones, 7)
+    total_driving = zone_f[:, 0] + zone_f[:, 1] + zone_f[:, 2]  # F_sp + F_rp + F_dp_drive
 
     # ----- Figure & map -----
     fig, ax = plt.subplots(figsize=(14, 7))
@@ -502,8 +507,9 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             line.set_clip_path(bpatch)
 
     # ----- Pie charts -----
-    colors_6 = ['#d62728', '#ff7f0e', '#1f77b4', '#17becf', '#9467bd', '#e7ba52']
-    # slab pull, ridge push, bending, plate drag, slab drag, DP back-pressure
+    # F_sp, F_rp, F_dp_drive, F_bend, F_pdrag, F_sdrag, F_dp_resist
+    # DP uses the same gold on both sides; position in pie shows which side it's on.
+    colors_7 = ['#d62728', '#ff7f0e', '#e7ba52', '#1f77b4', '#17becf', '#9467bd', '#e7ba52']
     pie_max, pie_min_sz = 0.085, 0.035   # axes-fraction diameter bounds (bigger)
     drive_norm = total_driving / total_driving.max()
 
@@ -533,7 +539,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
             continue
         ax_pie.pie(
             fvals / total,
-            colors=colors_6,
+            colors=colors_7,
             startangle=90,
             wedgeprops={'linewidth': 0.4, 'edgecolor': 'white'},
         )
@@ -541,11 +547,13 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
         ax_pie.patch.set_visible(False)
 
     # Legend
-    labels = ['Slab pull', 'Ridge push', 'Bending', 'Plate drag', 'Slab drag', 'DP back-pressure']
-    handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(colors_6, labels)]
-    ax.legend(handles=handles, loc='lower left', fontsize=8, frameon=True,
-              facecolor='white', framealpha=1.0,
-              bbox_to_anchor=(0.0, 0.01))
+    labels  = ['Slab pull', 'Ridge push', 'Dyn. pressure', 'Bending', 'Plate drag', 'Slab drag']
+    lcolors = ['#d62728',   '#ff7f0e',    '#e7ba52',        '#1f77b4', '#17becf',    '#9467bd']
+    handles = [Patch(facecolor=c, edgecolor='white', label=l) for c, l in zip(lcolors, labels)]
+    leg = ax.legend(handles=handles, loc='lower left', fontsize=11, frameon=True,
+                    facecolor='white', edgecolor='black', framealpha=1.0,
+                    bbox_to_anchor=(0.0, 0.01))
+    leg.set_zorder(10)
 
     ensure_parent_dir(output_path)
     fig.savefig(output_path, dpi=120, bbox_inches='tight', pad_inches=0.05)
