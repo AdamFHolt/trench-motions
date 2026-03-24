@@ -156,7 +156,6 @@ if include_DP == 0:
 
 
 # calculation parameters
-calc_slabL_using_dip = 1 		# 0 = take down-dip slab length from table, 1 = calculate it from dip and slabD
 const_slab_depth = 0  			# 0 = use lallemand depths, 1 = all slabs go to 660 km
 limit_max_depth = 0  			# 0 = no slab depth limit,  1 = limit depth to 660
 use_avg_Rmin = 1      			# 1 = for segments without an Rmin, use the global average.
@@ -199,7 +198,7 @@ max_age = 1000
 if limit_max_age == 1:
 	max_age = 90.
 
-segments = build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, calc_slabL_using_dip)
+segments = build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age)
 n = segments['n']
 num = segments['num']
 Lsp = segments['Lsp']

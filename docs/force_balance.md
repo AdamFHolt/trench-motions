@@ -13,8 +13,8 @@
 | $H$ | `H` | Lithosphere thickness (thermal isotherm depth) | m |
 | $R$ | `Rmin` | Minimum radius of curvature at trench | m |
 | $D$ | `slabD` | Slab depth | m |
-| $L$ | `slabL` | Horizontal plate length (plate drag) | m |
-| $\mathcal{L}_{sp}$ | `Lsp` | Slab length in asthenosphere (slab drag) | m |
+| $L_p$ | `slabL` | Plate drag length: ridge-to-trench distance (Lallemand col 21, `f`) | m |
+| $L_s$ | `Lsp` | Slab drag length: along-dip slab length $= D/\sin\delta$ | m |
 | $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
 | $F_R$ | `ridge_push` | Ridge push force per unit trench length | N/m |
 | $g$ | — | Gravitational acceleration (9.81 m/s²) | m/s² |
@@ -45,8 +45,8 @@ The unknowns are $v_{sp}$ (and equivalently $v_t = v_{sp} - v_c$). The convergen
 
 ### Velocity conventions
 
-- **Plate drag** (Couette flow of asthenosphere below the overriding plate) scales with the **absolute plate velocity $v_{sp}$** — the plate shears the asthenosphere at its full velocity.
-- **Slab drag** (asthenosphere sheared in the slab channel) also scales with $v_{sp}$.
+- **Plate drag** (Couette flow of asthenosphere below the flat subducting plate) scales with the **absolute plate velocity $v_{sp}$** over the ridge-to-trench length $L_p$.
+- **Slab drag** (asthenosphere sheared alongside the inclined slab) also scales with $v_{sp}$, over the along-dip slab length $L_s = D/\sin\delta$.
 - **DP back-pressure** scales with the **trench retreat velocity $v_t = v_{sp} - v_c$**.
 - **Bending** scales with the **convergence velocity $v_c$** (viscous) or is velocity-independent (plastic).
 
@@ -68,7 +68,7 @@ the DP force becomes $\eta_A \, C_{DP} \, v_t$. Reference values: $\eta_{A,\text
 
 ### Force balance
 
-$$\boxed{D B g + F_R \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c}_{\text{viscous bending}} + \underbrace{2\eta_A \frac{L}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{\mathcal{L}_{sp}}{h} v_{sp}}_{\text{slab drag}} + \underbrace{\eta_A C_{DP} \, v_t}_{\text{DP back-pressure}}}$$
+$$\boxed{D B g + F_R \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c}_{\text{viscous bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}} + \underbrace{\eta_A C_{DP} \, v_t}_{\text{DP back-pressure}}}$$
 
 - **Plate drag** and **slab drag** both scale with the absolute plate velocity $v_{sp}$.
 - **DP back-pressure** scales with the trench velocity $v_t$ (mantle displaced by trench retreat).
@@ -78,7 +78,7 @@ $$\boxed{D B g + F_R \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c}_
 
 Substituting $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$ and collecting $v_{sp}$ terms:
 
-$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L + \mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
 The denominator $\eta_A((2L + \mathcal{L}_{sp})/h + C_{DP})$ is the total resistance to slab motion. The $+\eta_A C_{DP} v_c$ in the numerator is an algebraic artifact of expanding $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$; it is not a physical driving force.
 
@@ -92,13 +92,13 @@ $$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces co
 
 ### Force balance
 
-$$\boxed{D B g + F_R \;=\; \underbrace{\frac{1}{6}\frac{H^2}{R}\sigma_Y}_{\text{plastic bending}} + \underbrace{2\eta_A \frac{L}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{\mathcal{L}_{sp}}{h} v_{sp}}_{\text{slab drag}} + \underbrace{\eta_A C_{DP} \, v_t}_{\text{DP back-pressure}}}$$
+$$\boxed{D B g + F_R \;=\; \underbrace{\frac{1}{6}\frac{H^2}{R}\sigma_Y}_{\text{plastic bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}} + \underbrace{\eta_A C_{DP} \, v_t}_{\text{DP back-pressure}}}$$
 
 The only difference from F1 is the bending term. Once the lithosphere yields, the bending moment is set by the yield stress $\sigma_Y$ and geometry alone — it is **independent of velocity** and **independent of $\eta_L$**. This has a qualitatively different scaling: in F1 bending resistance grows with $v_c$, in F2 it is fixed.
 
 ### Solved for $v_{sp}$
 
-$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L + \mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
 ### Trench velocity
 
@@ -116,13 +116,13 @@ $$h_\text{eff} = h_0 + \mathcal{L}_{sp} \cdot \frac{h_\text{ref} - h_0}{\mathcal
 
 Identical structure to F1 with $h \to h_\text{eff}$:
 
-$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}} v_{sp} + \eta_A \frac{\mathcal{L}_{sp}}{h_\text{eff}} v_{sp} + \eta_A C_{DP} \, v_t}$$
+$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}} v_{sp} + \eta_A \frac{L_s}{h_\text{eff}} v_{sp} + \eta_A C_{DP} \, v_t}$$
 
 Note: $C_{DP}$ is independent of $h$ and is unchanged.
 
 ### Solved for $v_{sp}$
 
-$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L + \mathcal{L}_{sp}}{h_\text{eff}} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h_\text{eff}} + C_{DP}\right)}}$$
 
 ### Trench velocity
 
@@ -138,7 +138,7 @@ $$h_\text{eff}(v_{sp}) = h_0 + v_{sp} \cdot \frac{h_\text{ref} - h_0}{v_{sp,\tex
 
 ### Force balance
 
-$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A \frac{\mathcal{L}_{sp}}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A C_{DP} \, v_t}$$
+$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A \frac{L_s}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A C_{DP} \, v_t}$$
 
 ### Solved for $v_{sp}$ (quadratic)
 
@@ -146,7 +146,7 @@ Let $P = D B g + F_R - \tfrac{2}{3}(H^3/R^3)\eta_L v_c + \eta_A C_{DP} v_c$ coll
 
 Substituting $h_\text{eff} = h_0 + m \, v_{sp}$ (where $m = (h_\text{ref}-h_0)/v_{sp,\text{ref}}$) and multiplying through by $h_\text{eff}$ yields $a \, v_{sp}^2 + b \, v_{sp} + c = 0$, with:
 
-$$a = \eta_A C_{DP} m, \qquad b = \eta_A(2L + \mathcal{L}_{sp} + C_{DP} h_0) - P m, \qquad c = -P h_0$$
+$$a = \eta_A C_{DP} m, \qquad b = \eta_A(2L_p + L_s + C_{DP} h_0) - P m, \qquad c = -P h_0$$
 
 Taking the positive root:
 
@@ -165,7 +165,8 @@ $$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces co
 | Bending term | $\frac{2}{3}\frac{H^3}{R^3}\eta_L v_c$ | $\frac{1}{6}\frac{H^2}{R}\sigma_Y$ | same as F1 | same as F1 |
 | Bending depends on $v_c$? | yes | **no** | yes | yes |
 | Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(\mathcal{L}_{sp})$ | $h(v_{sp})$ (quadratic) |
-| Plate drag scales with | $v_{sp}$ | $v_{sp}$ | $v_{sp}$ | $v_{sp}$ |
-| Denominator | $\eta_A((2L+\mathcal{L}_{sp})/h + C_{DP})$ | same as F1 | $\eta_A((2L+\mathcal{L}_{sp})/h_\text{eff} + C_{DP})$ | same structure |
+| Plate drag length | $L_p$ (ridge–trench) | same | same | same |
+| Slab drag length | $L_s = D/\sin\delta$ | same | same | same |
+| Denominator | $\eta_A((2L_p+L_s)/h + C_{DP})$ | same as F1 | $\eta_A((2L_p+L_s)/h_\text{eff} + C_{DP})$ | same structure |
 | Numerator vs F1 | — | replace bending | replace $h$ | replace $h$ |
 | Closed form? | yes | yes | yes | yes (quadratic) |
