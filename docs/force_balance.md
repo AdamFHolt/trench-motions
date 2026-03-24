@@ -14,7 +14,7 @@
 | $R$ | `Rmin` | Minimum radius of curvature at trench | m |
 | $D$ | `slabD` | Slab depth | m |
 | $L_p$ | `slabL` | Plate drag length: ridge-to-trench distance (Lallemand col 21, `f`) | m |
-| $L_s$ | `Lsp` | Slab drag length: along-dip slab length $= D/\sin\delta$ | m |
+| $L_s$ | `Lsp` | Slab drag length: measured slab length (Lallemand col 8, `L`) | m |
 | $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
 | $F_R$ | `ridge_push` | Ridge push force per unit trench length | N/m |
 | $g$ | — | Gravitational acceleration (9.81 m/s²) | m/s² |
@@ -46,7 +46,7 @@ The unknowns are $v_{sp}$ (and equivalently $v_t = v_{sp} - v_c$). The convergen
 ### Velocity conventions
 
 - **Plate drag** (Couette flow of asthenosphere below the flat subducting plate) scales with the **absolute plate velocity $v_{sp}$** over the ridge-to-trench length $L_p$.
-- **Slab drag** (asthenosphere sheared alongside the inclined slab) also scales with $v_{sp}$, over the along-dip slab length $L_s = D/\sin\delta$.
+- **Slab drag** (asthenosphere sheared alongside the inclined slab) also scales with $v_{sp}$, over the measured slab length $L_s$ (from Lallemand 2005).
 - **DP back-pressure** scales with the **trench retreat velocity $v_t = v_{sp} - v_c$**.
 - **Bending** scales with the **convergence velocity $v_c$** (viscous) or is velocity-independent (plastic).
 
@@ -166,7 +166,7 @@ $$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces co
 | Bending depends on $v_c$? | yes | **no** | yes | yes |
 | Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(\mathcal{L}_{sp})$ | $h(v_{sp})$ (quadratic) |
 | Plate drag length | $L_p$ (ridge–trench) | same | same | same |
-| Slab drag length | $L_s = D/\sin\delta$ | same | same | same |
+| Slab drag length | $L_s$ (Lallemand `L`) | same | same | same |
 | Denominator | $\eta_A((2L_p+L_s)/h + C_{DP})$ | same as F1 | $\eta_A((2L_p+L_s)/h_\text{eff} + C_{DP})$ | same structure |
 | Numerator vs F1 | — | replace bending | replace $h$ | replace $h$ |
 | Closed form? | yes | yes | yes | yes (quadratic) |
