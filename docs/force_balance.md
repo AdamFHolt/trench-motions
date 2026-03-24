@@ -13,7 +13,7 @@
 | $H$ | `H` | Lithosphere thickness (thermal isotherm depth) | m |
 | $R$ | `Rmin` | Minimum radius of curvature at trench | m |
 | $D$ | `slabD` | Slab depth | m |
-| $L_p$ | `slabL` | Plate drag length: ridge-to-trench distance (Lallemand col 21, `f`) | m |
+| $L_p$ | `slabL` | Plate drag length: ridge-to-trench distance (col 26, `LSP, simplified`) | m |
 | $L_s$ | `Lsp` | Slab drag length: measured slab length (Lallemand col 8, `L`) | m |
 | $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
 | $F_R$ | `ridge_push` | Ridge push force per unit trench length | N/m |

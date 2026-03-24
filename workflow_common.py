@@ -75,7 +75,7 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, seg_name
     for i in range(0, data.shape[0]):
         if np.isnan(data[i, 6]) == False and np.isnan(data[i, 7]) == False \
             and np.isnan(data[i, 8]) == False and np.isnan(data[i, 13]) == False \
-            and np.isnan(data[i, 20]) == False and np.isnan(data[i, 21]) == False:
+            and np.isnan(data[i, 20]) == False and np.isnan(data[i, 26]) == False:
             num = num + 1
 
     Lsp = np.zeros((num, 1))
@@ -96,7 +96,7 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, seg_name
     for i in range(0, data.shape[0]):
         if np.isnan(data[i, 6]) == False and np.isnan(data[i, 7]) == False \
             and np.isnan(data[i, 8]) == False and np.isnan(data[i, 13]) == False \
-            and np.isnan(data[i, 20]) == False and np.isnan(data[i, 21]) == False:
+            and np.isnan(data[i, 20]) == False and np.isnan(data[i, 26]) == False:
             if seg_names_raw is not None:
                 seg_names_out.append(seg_names_raw[i])
             latlon[n, 0] = data_vt[i, 0]
@@ -115,8 +115,8 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, seg_name
 
             # Slab drag length: measured slab length from Lallemand table (col 8, L)
             Lsp[n, 0] = data[i, 8] * 1e3
-            # Plate drag length: ridge-to-trench distance (Lallemand col 21, f)
-            slabL[n, 0] = data[i, 21] * 1e3
+            # Plate drag length: ridge-to-trench distance (col 26, 'LSP, simplified')
+            slabL[n, 0] = data[i, 26] * 1e3
             # Horizontal slab extent (for buoyancy geometry)
             slabL_buoy[n, 0] = slabD[n, 0] / np.tan(np.deg2rad(dip[n, 0]))
 
