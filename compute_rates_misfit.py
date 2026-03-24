@@ -147,7 +147,7 @@ if dp_ref_override is not None:
 
 
 def formulation_slug(formulation_id):
-	base = {1: 'viscous', 2: 'plastic', 3: 'viscous_LspShear'}.get(formulation_id)
+	base = {1: 'viscous', 2: 'plastic'}.get(formulation_id)
 	if base is None:
 		raise ValueError("unsupported formulation: {}".format(formulation_id))
 	return base + ('_wDynP' if DP_ref > 0 else '')
@@ -169,7 +169,7 @@ if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3]:
+if formulation not in [1, 2]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -305,7 +305,7 @@ print("RMS {:.2f} cm/yr, signs {:d}/{:d}  [min RMS: {}]".format(rms_min, num_sig
 if formulation == 2:
 	signs_y_param = signs_yield_stress
 	rms_y_param = rms_yield_stress
-elif formulation in (1, 3):
+else:
 	signs_y_param = signs_lith_visc
 	rms_y_param = rms_lith_visc
 
@@ -318,8 +318,6 @@ if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.plastic_bending.png'])
-elif formulation == 3:  # regular, hSP \propto LSP
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending_hSPproptoLSP.png'])
 plot_name = suite_out_path('param-sweep', plot_name)
 
 if formulation == 2:

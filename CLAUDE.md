@@ -36,22 +36,20 @@ make run-matrix FORMULATIONS=1 REF_FRAMES=nnr
 |------|------|
 | `compute_rates_misfit.py` | Parameter sweep driver. Accepts `--config` YAML or positional args. Key flags: `--formulation`, `--vt-ref`, `--skip-map`, `--smoke`. |
 | `compute_rates_single.py` | Single deterministic run with fixed viscosity values. |
-| `functions.py` | Physics engine — `compute_vsp_withDP()` implements all 4 formulations. |
+| `functions.py` | Physics engine — `compute_vsp_withDP()` implements formulations 1 and 2. |
 | `workflow_common.py` | Shared data prep: VT column mapping, segment arrays, depth/dip interpolation. |
 | `plotting_functions.py` | `save_quick_plot()`, `save_misfit_heatmap()`, `save_trench_motion_map()`, `save_vt_param_plot()`. |
 | `matrix_summary.py` | Aggregates sweep results across all frames/models into CSV + bar plots. |
 
-## Formulations (active set 1–4)
+## Formulations (active set 1–2, each run with/without ΔP)
 
-| # | Name (slug) | Bending | Channel thickness h |
-|---|-------------|---------|---------------------|
-| 1 | `viscous` | Viscous, $\frac{2}{3}(H^3/R^3)\eta_L v_c$ | Fixed, 200 km |
-| 2 | `plastic` | Plastic, $\frac{1}{6}(H^2/R)\sigma_Y$ | Fixed, 200 km |
-| 3 | `viscous_LspShear` | Viscous | $h \propto L_{sp}$ (100–250 km) |
+| # | Slug (no ΔP / with ΔP) | Bending | Channel thickness h |
+|---|------------------------|---------|---------------------|
+| 1 | `viscous` / `viscous_wDynP` | Viscous, $\frac{2}{3}(H^3/R^3)\eta_L v_c$ | Fixed, 200 km |
+| 2 | `plastic` / `plastic_wDynP` | Plastic, $\frac{1}{6}(H^2/R)\sigma_Y$ | Fixed, 200 km |
 
 Canonical config (`configs/run_params.yaml`): formulation=1, DP_ref=2.35e7 Pa, include_ridge_push=1.
-
-All formulations include dynamic pressure (DP) back-pressure parameterised from a reference Stokes solution. See `docs/force_balance.md` for full derivations.
+Use `--dp-ref 0` (or `DP_REF_VALUES=0` in make) for the no-ΔP variants.
 
 ## Output layout
 

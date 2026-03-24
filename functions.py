@@ -56,16 +56,6 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push  - ((1./6.) * (H**2/Rmin) * yield_stress) + \
 			vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
-	elif formulation == 3: # viscous bending, with h proportional to slabL
-
-		slabL_ref = 5000.e3;
-		hsp_ref = 250.e3;
-		h0 = 100.e3;
-		hsp_eff = h0 +  slabL*((hsp_ref - h0)/slabL_ref)
-		prefactor =  visc_asthen * ( (2.0*Lsp/hsp_eff) + (slabL/hsp_eff) + ((slabD * DP_ref * w)/(visc_asthen_ref * w_ref * vt_ref)) )
-		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) + \
-			vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
-
 	else:
 		raise ValueError("unsupported formulation: {}".format(formulation))
 		

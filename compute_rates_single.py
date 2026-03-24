@@ -128,7 +128,7 @@ def misfit_plot_out_path(filename):
 
 
 def formulation_slug(formulation_id):
-	base = {1: 'viscous', 2: 'plastic', 3: 'viscous_LspShear'}.get(formulation_id)
+	base = {1: 'viscous', 2: 'plastic'}.get(formulation_id)
 	if base is None:
 		raise ValueError("unsupported formulation: {}".format(formulation_id))
 	return base + ('_wDynP' if DP_ref > 0 else '')
@@ -141,7 +141,7 @@ if include_DP not in [0, 1]:
 	print("include_DP must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3]:
+if formulation not in [1, 2]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -260,8 +260,6 @@ if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
 elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.plastic_bending.png'])
-elif formulation == 3:  # regular, hSP \propto LSP
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending_hSPproptoLSP.png'])
 plot_name = misfit_plot_out_path(plot_name)
 
 if formulation == 2:

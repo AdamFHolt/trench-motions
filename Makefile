@@ -4,7 +4,7 @@ MAKEFLAGS += --no-print-directory
 
 RUN_CONFIG ?= configs/run_params.yaml
 REF_FRAMES ?= hs3 nnr sa
-FORMULATIONS ?= 1 2 3
+FORMULATIONS ?= 1 2
 DP_REF_VALUES ?= 0 2.35e7
 SUMMARY_SUITES ?= best-fit
 

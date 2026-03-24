@@ -430,11 +430,7 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     vsp_ms = vsp_best * vel_converter   # cm/yr → m/s
 
     # Effective channel thickness per formulation
-    if formulation == 3:
-        hsp_ref, h0, slabL_ref = 250e3, 100e3, 5000e3
-        h_eff = h0 + slabL * (hsp_ref - h0) / slabL_ref
-    else:
-        h_eff = np.full_like(slabL, h)
+    h_eff = np.full_like(slabL, h)
 
     # Force components in N/m (force per unit trench length)
     # Physical balance: F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP
@@ -815,7 +811,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3):
+    elif formulation in (1,):
         im1 = ax.imshow(
             100.0 * (sign / n),
             cmap=cm.RdYlGn,
@@ -864,7 +860,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3):
+    elif formulation in (1,):
         im2 = ax.imshow(
             rms,
             cmap=cm.RdYlGn,
