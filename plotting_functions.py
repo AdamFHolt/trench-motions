@@ -433,10 +433,6 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
     if formulation == 3:
         hsp_ref, h0, slabL_ref = 250e3, 100e3, 5000e3
         h_eff = h0 + slabL * (hsp_ref - h0) / slabL_ref
-    elif formulation == 4:
-        h0, hsp_ref = 150e3, 200e3
-        m_slope = (hsp_ref - h0) / (5.0 * vel_converter)  # slope: dh/d(vsp)
-        h_eff = h0 + m_slope * np.abs(vsp_ms)
     else:
         h_eff = np.full_like(slabL, h)
 
@@ -819,7 +815,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3, 4):
+    elif formulation in (1, 3):
         im1 = ax.imshow(
             100.0 * (sign / n),
             cmap=cm.RdYlGn,
@@ -868,7 +864,7 @@ def save_misfit_heatmap(
             aspect=(asth_visc_max - asth_visc_min) / ((yield_max / 1e6) - (yield_min / 1e6)),
         )
         ax.set_ylabel("$\mathregular{\sigma_{Y}}$  [MPa]")
-    elif formulation in (1, 3, 4):
+    elif formulation in (1, 3):
         im2 = ax.imshow(
             rms,
             cmap=cm.RdYlGn,

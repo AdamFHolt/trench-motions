@@ -66,29 +66,6 @@ def compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,s
 		vsp = (1/prefactor) * ((slabD * oceanic_buoy * g) + ridge_push - ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) + \
 			vc*((slabD*DP_ref*visc_asthen*w)/(visc_asthen_ref*w_ref*vt_ref)))
 
-	elif formulation == 4: # viscous bending, with h proportional to Vsp -- closed-form quadratic
-
-		vsp_ref = 5.0 * vel_converter # 5 cm/yr
-		hsp_ref = 200.e3
-		h0 = 150.e3
-		m = (hsp_ref - h0) / vsp_ref  # slope: d(h_eff)/d(vsp)
-
-		C_DP = (slabD * DP_ref * w) / (visc_asthen_ref * w_ref * vt_ref)
-
-		# Driving terms (bending resists, DP algebraic artifact +C_DP*vc from expanding v_t=vsp-vc)
-		P = (slabD * oceanic_buoy * g) + ridge_push \
-			- ((2./3.) * (H**3/Rmin**3) * visc_lith * vc) \
-			+ visc_asthen * C_DP * vc
-
-		# Substituting h_eff = h0 + m*vsp into the force balance and
-		# multiplying through by h_eff gives: a*vsp^2 + b*vsp + c = 0
-		a = visc_asthen * C_DP * m
-		b = visc_asthen * (2.0*Lsp + slabL + C_DP * h0) - P * m
-		c = -(P * h0)
-
-		disc = b**2 - 4.0 * a * c
-		vsp = (-b + np.sqrt(np.maximum(disc, 0.0))) / (2.0 * a)
-
 	else:
 		raise ValueError("unsupported formulation: {}".format(formulation))
 		

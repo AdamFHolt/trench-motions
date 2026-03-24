@@ -90,7 +90,7 @@ else:
 	main_args = args_wo_config[:6]
 	extra_args = args_wo_config[6:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP, 4 = regular, hSP \propto VSP, 5 = regular with OP
+	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	asthen_visc = float(main_args[4])
@@ -134,8 +134,6 @@ def formulation_slug(formulation_id):
 		return 'plastic'
 	if formulation_id == 3:
 		return 'viscous_LspShear'
-	if formulation_id == 4:
-		return 'viscous_VspShear'
 	raise ValueError("unsupported formulation: {}".format(formulation_id))
 
 if vt_ref not in ['hs3', 'nnr', 'sa']:
@@ -146,7 +144,7 @@ if include_DP not in [0, 1]:
 	print("include_DP must be 0 or 1")
 	print(USAGE)
 	sys.exit(2)
-if formulation not in [1, 2, 3, 4]:
+if formulation not in [1, 2, 3]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
@@ -272,8 +270,6 @@ elif formulation == 2: # plastic bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
 elif formulation == 3:  # regular, hSP \propto LSP
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
-elif formulation == 4:  # regular, hSP \propto VSP
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoVSP.png'])
 plot_name = misfit_plot_out_path(plot_name)
 
 if formulation == 2:

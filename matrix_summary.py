@@ -99,14 +99,12 @@ MODEL_TO_FORMULATION = {
     'viscous': 'F1: viscous',
     'plastic': 'F2: plastic',
     'viscous_LspShear': 'F3: viscous_LspShear',
-    'viscous_VspShear': 'F4: viscous_VspShear',
 }
 
 FORMULATION_COLORS = {
     'F1: viscous':          '#4C78A8',
     'F2: plastic':          '#F58518',
     'F3: viscous_LspShear': '#54A24B',
-    'F4: viscous_VspShear': '#B279A2',
 }
 
 REF_FRAME_ORDER = ['hs3', 'nnr', 'sa']
@@ -114,7 +112,7 @@ REF_FRAME_ORDER = ['hs3', 'nnr', 'sa']
 
 def plot_grouped_metric_bar(rows, metric_key, ylabel, output_path, title, lower_is_better=True):
     """Grouped bar chart: ref-frames on x-axis, one bar cluster per formulation."""
-    # Collect unique formulations in canonical F1→F2→F3→F4 order
+    # Collect unique formulations in canonical F1→F2→F3 order
     canonical_order = list(MODEL_TO_FORMULATION.values())
     seen = dict.fromkeys(r.get('formulation', r['model']) for r in rows)
     formulations = [f for f in canonical_order if f in seen]

@@ -80,7 +80,7 @@ Substituting $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$ and collecting $v_{sp}$ term
 
 $$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
-The denominator $\eta_A((2L + \mathcal{L}_{sp})/h + C_{DP})$ is the total resistance to slab motion. The $+\eta_A C_{DP} v_c$ in the numerator is an algebraic artifact of expanding $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$; it is not a physical driving force.
+The denominator $\eta_A((2L_p + L_s)/h + C_{DP})$ is the total resistance to slab motion. The $+\eta_A C_{DP} v_c$ in the numerator is an algebraic artifact of expanding $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$; it is not a physical driving force.
 
 ### Trench velocity
 
@@ -116,7 +116,7 @@ $$h_\text{eff} = h_0 + \mathcal{L}_{sp} \cdot \frac{h_\text{ref} - h_0}{\mathcal
 
 Identical structure to F1 with $h \to h_\text{eff}$:
 
-$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}} v_{sp} + \eta_A \frac{L_s}{h_\text{eff}} v_{sp} + \eta_A C_{DP} \, v_t}$$
+$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L_p}{h_\text{eff}} v_{sp} + \eta_A \frac{L_s}{h_\text{eff}} v_{sp} + \eta_A C_{DP} \, v_t}$$
 
 Note: $C_{DP}$ is independent of $h$ and is unchanged.
 
@@ -130,43 +130,14 @@ $$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces co
 
 ---
 
-## Formulation 4 — Viscous Bending, $h \propto v_{sp}$ (closed-form quadratic)
-
-Channel thickness scales linearly with the slab velocity — faster slabs maintain a thicker shear zone:
-
-$$h_\text{eff}(v_{sp}) = h_0 + v_{sp} \cdot \frac{h_\text{ref} - h_0}{v_{sp,\text{ref}}} \qquad h_0 = 150\text{ km},\; h_\text{ref} = 200\text{ km},\; v_{sp,\text{ref}} = 5\text{ cm/yr}$$
-
-### Force balance
-
-$$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \frac{L}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A \frac{L_s}{h_\text{eff}(v_{sp})} v_{sp} + \eta_A C_{DP} \, v_t}$$
-
-### Solved for $v_{sp}$ (quadratic)
-
-Let $P = D B g + F_R - \tfrac{2}{3}(H^3/R^3)\eta_L v_c + \eta_A C_{DP} v_c$ collect all terms that do not depend on $v_{sp}$ (the $+\eta_A C_{DP} v_c$ is the algebraic artifact from expanding $v_t = v_{sp} - v_c$).
-
-Substituting $h_\text{eff} = h_0 + m \, v_{sp}$ (where $m = (h_\text{ref}-h_0)/v_{sp,\text{ref}}$) and multiplying through by $h_\text{eff}$ yields $a \, v_{sp}^2 + b \, v_{sp} + c = 0$, with:
-
-$$a = \eta_A C_{DP} m, \qquad b = \eta_A(2L_p + L_s + C_{DP} h_0) - P m, \qquad c = -P h_0$$
-
-Taking the positive root:
-
-$$\boxed{v_{sp} = \frac{-b + \sqrt{b^2 - 4ac}}{2a}}$$
-
-### Trench velocity
-
-$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
-
----
-
 ## Comparison Summary
 
-| | F1 Viscous | F2 Plastic | F3 $h(\mathcal{L}_{sp})$ | F4 $h(v_{sp})$ |
-|--|--|--|--|--|
-| Bending term | $\frac{2}{3}\frac{H^3}{R^3}\eta_L v_c$ | $\frac{1}{6}\frac{H^2}{R}\sigma_Y$ | same as F1 | same as F1 |
-| Bending depends on $v_c$? | yes | **no** | yes | yes |
-| Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(\mathcal{L}_{sp})$ | $h(v_{sp})$ (quadratic) |
-| Plate drag length | $L_p$ (ridge–trench) | same | same | same |
-| Slab drag length | $L_s$ (Lallemand `L`) | same | same | same |
-| Denominator | $\eta_A((2L_p+L_s)/h + C_{DP})$ | same as F1 | $\eta_A((2L_p+L_s)/h_\text{eff} + C_{DP})$ | same structure |
-| Numerator vs F1 | — | replace bending | replace $h$ | replace $h$ |
-| Closed form? | yes | yes | yes | yes (quadratic) |
+| | F1 Viscous | F2 Plastic | F3 $h(L_s)$ |
+|--|--|--|--|
+| Bending term | $\frac{2}{3}\frac{H^3}{R^3}\eta_L v_c$ | $\frac{1}{6}\frac{H^2}{R}\sigma_Y$ | same as F1 |
+| Bending depends on $v_c$? | yes | **no** | yes |
+| Channel thickness $h$ | fixed, 200 km | fixed, 200 km | $h(L_s)$ |
+| Plate drag length | $L_p$ (ridge–trench) | same | same |
+| Slab drag length | $L_s$ (Lallemand `L`) | same | same |
+| Denominator | $\eta_A((2L_p+L_s)/h + C_{DP})$ | same as F1 | $\eta_A((2L_p+L_s)/h_\text{eff} + C_{DP})$ |
+| Closed form? | yes | yes | yes |

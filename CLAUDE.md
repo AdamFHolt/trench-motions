@@ -48,7 +48,6 @@ make run-matrix FORMULATIONS=1 REF_FRAMES=nnr
 | 1 | `viscous` | Viscous, $\frac{2}{3}(H^3/R^3)\eta_L v_c$ | Fixed, 200 km |
 | 2 | `plastic` | Plastic, $\frac{1}{6}(H^2/R)\sigma_Y$ | Fixed, 200 km |
 | 3 | `viscous_LspShear` | Viscous | $h \propto L_{sp}$ (100–250 km) |
-| 4 | `viscous_VspShear` | Viscous | $h \propto v_{sp}$ (150–200 km), closed-form quadratic |
 
 Canonical config (`configs/run_params.yaml`): formulation=1, DP_ref=2.35e7 Pa, include_ridge_push=1.
 
