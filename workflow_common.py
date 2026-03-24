@@ -114,9 +114,9 @@ def build_segment_arrays(data, data_vt, vt_col, vel_converter, max_age, seg_name
             slabD[n, 0] = data[i, 7] * 1e3
 
             # Slab drag length: measured slab length from Lallemand table (col 8, L)
-            Lsp[n, 0] = data[i, 8] * 1e3
-            # Plate drag length: ridge-to-trench distance (col 26, 'LSP, simplified')
-            slabL[n, 0] = data[i, 26] * 1e3
+            slabL[n, 0] = data[i, 8] * 1e3
+            # Plate drag length: length of subducting plate, ridge-to-trench (col 26, 'LSP, simplified')
+            Lsp[n, 0] = data[i, 26] * 1e3
             # Horizontal slab extent (for buoyancy geometry)
             slabL_buoy[n, 0] = slabD[n, 0] / np.tan(np.deg2rad(dip[n, 0]))
 

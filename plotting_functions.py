@@ -431,14 +431,14 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
 
     # Effective channel thickness per formulation
     if formulation == 3:
-        hsp_ref, h0, Lsp_ref = 250e3, 100e3, 5000e3
-        h_eff = h0 + Lsp * (hsp_ref - h0) / Lsp_ref
+        hsp_ref, h0, slabL_ref = 250e3, 100e3, 5000e3
+        h_eff = h0 + slabL * (hsp_ref - h0) / slabL_ref
     elif formulation == 4:
         h0, hsp_ref = 150e3, 200e3
         m_slope = (hsp_ref - h0) / (5.0 * vel_converter)  # slope: dh/d(vsp)
         h_eff = h0 + m_slope * np.abs(vsp_ms)
     else:
-        h_eff = np.full_like(Lsp, h)
+        h_eff = np.full_like(slabL, h)
 
     # Force components in N/m (force per unit trench length)
     # Physical balance: F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP
@@ -453,8 +453,8 @@ def save_force_budget_map(segments, H, oceanic_buoy, ridge_push,
         F_bend = (1./6.) * (H_1d**2 / Rmin) * yield_stress
     else:
         F_bend = (2./3.) * (H_1d**3 / Rmin**3) * visc_lith * np.abs(vc)
-    F_pdrag  = 2.0 * np.abs(vsp_ms) * slabL * (visc_asthen / h_eff)
-    F_sdrag  = visc_asthen * (Lsp / h_eff) * np.abs(vsp_ms)
+    F_pdrag  = 2.0 * np.abs(vsp_ms) * Lsp * (visc_asthen / h_eff)
+    F_sdrag  = visc_asthen * (slabL / h_eff) * np.abs(vsp_ms)
     v_t      = vsp_ms - np.abs(vc)
     F_dp_true   = visc_asthen * C_DP * v_t          # signed: + retreat, − advance
     F_dp_resist = np.maximum( F_dp_true, 0.0)       # > 0 for retreating zones
