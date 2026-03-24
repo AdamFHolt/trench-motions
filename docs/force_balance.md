@@ -67,13 +67,17 @@ $$\boxed{D B g + F_R \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c}_
 - **DP back-pressure** scales with the trench velocity $v_t$ (mantle displaced by trench retreat).
 - **Bending** and **plate drag** scale with convergence $v_c$ only.
 
-### Solved for $v_t$
+### Solved for $v_{sp}$
 
-Substituting $v_{sp} = v_t + v_c$ and collecting terms:
+Substituting $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$ and collecting $v_{sp}$ terms:
 
-$$\boxed{v_t = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - \eta_A \dfrac{2L + \mathcal{L}_{sp}}{h} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - 2\eta_A \dfrac{L}{h} v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
 
-The denominator is the total resistance to trench motion (slab drag + DP). The numerator is the net driving force minus the velocity-independent resistances.
+The denominator is $\eta_A(\mathcal{L}_{sp}/h + C_{DP})$ (total resistance to slab motion). The $+\eta_A C_{DP} v_c$ in the numerator is an algebraic artifact of expanding $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$; it is not a physical driving force.
+
+### Trench velocity
+
+$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
 
 ---
 
@@ -85,9 +89,13 @@ $$\boxed{D B g + F_R \;=\; \underbrace{\frac{1}{6}\frac{H^2}{R}\sigma_Y}_{\text{
 
 The only difference from F1 is the bending term. Once the lithosphere yields, the bending moment is set by the yield stress $\sigma_Y$ and geometry alone — it is **independent of velocity** and **independent of $\eta_L$**. This has a qualitatively different scaling: in F1 bending resistance grows with $v_c$, in F2 it is fixed.
 
-### Solved for $v_t$
+### Solved for $v_{sp}$
 
-$$\boxed{v_t = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y - \eta_A \dfrac{2L + \mathcal{L}_{sp}}{h} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y - 2\eta_A \dfrac{L}{h} v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h} + C_{DP}\right)}}$$
+
+### Trench velocity
+
+$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
 
 ---
 
@@ -105,9 +113,13 @@ $$\boxed{D B g + F_R \;=\; \frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c + 2\eta_A \fr
 
 Note: $C_{DP}$ is independent of $h$ and is unchanged.
 
-### Solved for $v_t$
+### Solved for $v_{sp}$
 
-$$\boxed{v_t = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - \eta_A \dfrac{2L + \mathcal{L}_{sp}}{h_\text{eff}} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h_\text{eff}} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c - 2\eta_A \dfrac{L}{h_\text{eff}} v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{\mathcal{L}_{sp}}{h_\text{eff}} + C_{DP}\right)}}$$
+
+### Trench velocity
+
+$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
 
 ---
 
@@ -130,6 +142,10 @@ $$a = \eta_A C_{DP} m, \qquad b = \eta_A(\mathcal{L}_{sp} + C_{DP} h_0) - P m, \
 where $P = D B g + F_R - \tfrac{2}{3}(H^3/R^3)\eta_L v_c + \eta_A C_{DP} v_c$. Taking the positive root:
 
 $$\boxed{v_{sp} = \frac{-b + \sqrt{b^2 - 4ac}}{2a}}$$
+
+### Trench velocity
+
+$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
 
 ---
 
