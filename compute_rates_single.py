@@ -256,25 +256,20 @@ if include_DP == 0:
 else:
 	DP_string = ''.join(['.DP',str("%.3g" % (DP_ref/1e6)),'MPa'])
 
-if include_ridge_push:
-	RP_string = '.withRP'
-else:
-	RP_string = ''
-
 if formulation == 1:  # viscous bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
 elif formulation == 2: # plastic bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.plastic_bending.png'])
 elif formulation == 3:  # regular, hSP \propto LSP
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending_hSPproptoLSP.png'])
 plot_name = misfit_plot_out_path(plot_name)
 
 if formulation == 2:
 	param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
 else:
 	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
-rms_name = out_path('bestfit' + DP_string + RP_string + param_suffix)
-map_name = out_path('map' + DP_string + RP_string + param_suffix)
+rms_name = out_path('bestfit' + DP_string + param_suffix)
+map_name = out_path('map' + DP_string + param_suffix)
 
 # best-fit outputs
 bestfit_txt = rms_name + '.txt'

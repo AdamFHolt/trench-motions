@@ -314,25 +314,20 @@ if include_DP == 0:
 else:
 	DP_string = ''.join(['.DP',str("%.3g" % (DP_ref/1e6)),'MPa'])
 
-if include_ridge_push:
-	RP_string = '.withRP'
-else:
-	RP_string = ''
-
 if formulation == 1:  # viscous bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
 elif formulation == 2: # plastic bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.plastic_bending.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.plastic_bending.png'])
 elif formulation == 3:  # regular, hSP \propto LSP
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,RP_string,'.viscous_bending_hSPproptoLSP.png'])
+	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending_hSPproptoLSP.png'])
 plot_name = suite_out_path('param-sweep', plot_name)
 
 if formulation == 2:
 	param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
 else:
 	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
-bestfit_name = suite_out_path('best-fit', 'bestfit' + DP_string + RP_string + param_suffix)
-map_name = suite_out_path('best-fit', 'map' + DP_string + RP_string + param_suffix)
+bestfit_name = suite_out_path('best-fit', 'bestfit' + DP_string + param_suffix)
+map_name = suite_out_path('best-fit', 'map' + DP_string + param_suffix)
 save_misfit_heatmap(
 	sign=sign,
 	rms=rms,
@@ -355,7 +350,7 @@ save_misfit_heatmap(
 
 vt_param_plot_name = suite_out_path(
 	'best-fit',
-	'vt_param' + DP_string + RP_string + param_suffix + '.png',
+	'vt_param' + DP_string + param_suffix + '.png',
 )
 try:
 	save_vt_param_plot(
@@ -379,7 +374,7 @@ ensure_parent_dir(bestfit_txt)
 np.savetxt(bestfit_txt, rms_predicted_vts, fmt='%.4f')
 
 vt_observed=''.join(['tnew.',str(vt_ref),'.dat'])
-quick_plot_name = suite_out_path('best-fit', 'correlation' + DP_string + RP_string + param_suffix + '.png')
+quick_plot_name = suite_out_path('best-fit', 'correlation' + DP_string + param_suffix + '.png')
 try:
 	save_quick_plot(
 		predicted_path=bestfit_txt,
@@ -391,7 +386,7 @@ except Exception as exc:
 	print("warning: quick plot generation failed ({})".format(exc))
 
 # Force budget map (one pie per zone, sized by driving force)
-force_budget_name = suite_out_path('best-fit', 'force_budget' + DP_string + RP_string + param_suffix + '.png')
+force_budget_name = suite_out_path('best-fit', 'force_budget' + DP_string + param_suffix + '.png')
 visc_lith_best = 10**rms_lith_visc
 visc_asthen_best = 10**rms_asthen_visc
 vsp_best = compute_vsp_withDP(formulation, vc, h, visc_asthen_best, visc_lith_best, H, Lsp,
