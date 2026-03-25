@@ -136,7 +136,24 @@ def load_age_grid(age_grd):
         lat_key = 'lat' if 'lat' in keys else 'y'
         lon = np.array(f.variables[lon_key][:], dtype=float)
         lat = np.array(f.variables[lat_key][:], dtype=float)
-        z = np.array(f.variables['z'][:], dtype=float)
+        zv = f.variables['z']
+        z = np.array(zv[:], dtype=float)
+        fill = getattr(zv, '_FillValue', None)
+        scale = getattr(zv, 'scale_factor', None)
+    # convert fill values to NaN
+    if fill is not None:
+        z[z == fill] = np.nan
+    # apply scale factor (NGDC stores age in 0.01 Ma units)
+    if scale is not None:
+        z *= float(scale)
+    elif np.nanmax(z) > 500:
+        z *= 0.01
+    # convert lon from -180:180 to 0:360 so it matches map convention
+    if lon.min() < 0:
+        lon = np.where(lon < 0, lon + 360, lon)
+        sort_idx = np.argsort(lon)
+        lon = lon[sort_idx]
+        z = z[:, sort_idx]
     result = lon, lat, z
     _age_grid_cache[age_grd] = result
     return result
