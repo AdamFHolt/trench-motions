@@ -62,13 +62,15 @@ plots/sketch/                             # hand-drawn / reference figures (trac
 
 `matrix_summary.py` reads `bestfit.*.txt` from `best-fit/` directories (suite `best-fit`).
 
-## Latest results (Formulation 1, viscous, DP_ref=2.35e7, with ridge push)
+## Latest results (viscous_wDynP / F1+ΔP, DP_ref=2.35e7, with ridge push)
 
 | Frame | Min RMSE | Sign match |
 |-------|----------|------------|
 | hs3   | 4.01 cm/yr | 70/120   |
 | nnr   | 2.27 cm/yr | 94/120   |
 | sa    | 3.08 cm/yr | 84/120   |
+
+Results stale — rerun needed with corrected drag lengths (Lsp=col26, slabL=col8) and 4-model matrix.
 
 ## Map data
 
@@ -85,36 +87,21 @@ Age grid and plate boundaries are cached in memory across map calls (module-leve
 ## Next steps
 
 ### ~~i) Matrix summary — cover all formulations and reference frames~~ ✓ done
-Grouped bar plots (`rmse_by_formulation.png`, `sign_match_by_formulation.png`) in `plots/summary/`.
+### ~~i-b) Force budget map physics~~ ✓ resolved
+### ~~iii) Vt vs. parameter plots~~ ✓ done
 
-### i-b) Force budget map — finalise (physics resolved, rerun needed)
+### A) Full rerun — regenerate all outputs with current code
+Run `make run-matrix-with-summary` (12 runs: 2 formulations × 2 DP cases × 3 frames).
+This will populate `plots/` with corrected drag lengths and produce the 4-bar summary figures.
 
-`save_force_budget_map()` in `plotting_functions.py`, called from `compute_rates_misfit.py` at best-fit params.
-Output: `plots/<vt_ref>/<model>/best-fit/force_budget.*.png`
-
-**Physics resolved.** Key facts from `docs/force_balance.md`:
-- Physical balance: `F_sp + F_rp = F_bend + F_pdrag + F_sdrag + F_DP`
-- `F_DP = η_A · C_DP · v_t` where `v_t = v_sp − v_c` (positive = trench retreat)
-- `F_pdrag = 2η_A · (L/h) · v_sp` (plate drag, scales with **absolute plate velocity** v_sp, not v_c)
-- `F_sdrag = η_A · (L_sp/h) · v_sp` (slab channel drag, scales with v_sp)
-- For **retreating** zones (v_t > 0): F_DP resists (resisting half of pie)
-- For **advancing** zones (v_t < 0): F_DP drives (driving half of pie)
-- The `+η_A·C_DP·v_c` that appears in the numerator when solving for `v_sp` is an **algebraic artifact** of substituting `v_t = v_sp − v_c`, not a physical driving force
-
-**TODO:** Rerun the sweep to regenerate force budget plots with the corrected plate drag (∝ v_sp).
-
-### ii) Dataset audit — which trenches are included/excluded
-Understand which of the ~160 Lallemand segments make it into the active set (~120) and why the others are dropped (missing dip, Rmin, age, vt, etc.). Useful outputs:
-- A table or map of included vs. excluded segments
-- Distribution plots of key parameters (age, dip, Rmin, Lsp, slabD) for included segments
+### B) Dataset audit — which segments are included/excluded
+Understand which of the ~160 Lallemand rows make it into the active set (~98) and why others are dropped.
+- Inclusion filter checks cols 6 (dip), 7 (slabD), 8 (slabL), 13 (Rmin), 20 (age), 26 (Lsp) for NaN
+- Useful outputs: table of included vs. excluded segments; map; parameter distributions
 - Flag segments where observed vt is missing in one or more reference frames
 
-### ~~iii) Vt vs. parameter plots (model curves + data)~~ ✓ done
-`save_vt_param_plot()` in `plotting_functions.py`. Outputs to `plots/<vt_ref>/<model>/best-fit/vt_param_*.png`.
-
-### iv) Collaborator handoff — clean up and document
-- Confirm all scripts run end-to-end from a clean clone (`make run-matrix-with-summary`)
-- Add a brief methods note or caption-ready description for each plot type
-- Check that `docs/force_balance.md` is self-contained and matches the current code exactly
+### C) Collaborator handoff — final checks before passing to student
+- Confirm end-to-end run from clean clone (`make run-matrix-with-summary`)
+- Check `docs/force_balance.md` matches current code exactly
 - Remove any remaining debug prints or stale comments
-- Tag a clean release commit once the above are done
+- Tag a clean release commit
