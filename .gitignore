@@ -8,7 +8,6 @@ tmp/
 .venv/
 env/
 data/age.3.6.NaN.grd
-data/PB2002_tdiddy.gmt
 data/papers/
 results/
 archive/generated/

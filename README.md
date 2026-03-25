@@ -68,7 +68,7 @@ make run-matrix-maps-with-summary
 
 Single direct run:
 ```bash
-python3 compute_rates_single.py sa 1 1 23.5e6 1e21 1e22
+python3 compute_rates_single.py sa 1 23.5e6 1e21 1e22
 ```
 
 For full CLI options and arguments:
@@ -94,3 +94,5 @@ If `DATASETS_DIR` is not set, map plotting auto-detects a flat layout in `data/`
 - `data/age.3.6.NaN.grd`
 - `data/PB2002_tdiddy.gmt`
 If these datasets are missing, map plotting still runs, but without the age raster background and PB2002 boundary overlay.
+
+`PB2002_tdiddy.gmt` is tracked in this repository. `age.3.6.NaN.grd` is not (25 MB); obtain it from the EarthByte/Müller et al. oceanic age grid distribution and place it at `data/age.3.6.NaN.grd`.

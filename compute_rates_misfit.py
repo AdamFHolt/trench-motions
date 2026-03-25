@@ -15,14 +15,13 @@ def ensure_parent_dir(path):
 
 
 USAGE = """Usage:
-  python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py <vt_ref> <formulation> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
   python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1|2>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
   formulation           integer model id
-  include_DP            0 | 1
-  DP_ref                float (Pa)
+  DP_ref                float (Pa); 0 = no dynamic pressure
   include_ridge_push    0 | 1
 
 Optional flags:
@@ -60,7 +59,6 @@ if cfg:
 	missing_keys = [
 		k for k in [
 			'formulation',
-			'include_DP',
 			'DP_ref',
 			'include_ridge_push',
 		]
@@ -71,7 +69,6 @@ if cfg:
 		sys.exit(2)
 	vt_ref = str(cfg.get('vt_ref', ''))
 	formulation = int(cfg['formulation'])
-	include_DP = int(cfg['include_DP'])
 	DP_ref = float(cfg['DP_ref'])
 	include_ridge_push = int(cfg['include_ridge_push'])
 	extra_args = args_wo_config
@@ -79,16 +76,15 @@ if cfg:
 	skip_map = bool(cfg.get('skip_map', False))
 	out_prefix = str(cfg.get('out_prefix', ''))
 else:
-	if len(args_wo_config) < 5:
+	if len(args_wo_config) < 4:
 		print(USAGE)
 		sys.exit(2)
-	main_args = args_wo_config[:5]
-	extra_args = args_wo_config[5:]
+	main_args = args_wo_config[:4]
+	extra_args = args_wo_config[4:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
 	formulation=int(main_args[1])			# 1 = viscous bending, 2 = plastic bending
-	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
-	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
-	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
+	DP_ref=float(main_args[2]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
+	include_ridge_push=int(main_args[3]) 	# 0 = no ridge push, 1 = approximation for ridge push
 	smoke_mode = False
 	skip_map = False
 	out_prefix = ''
@@ -161,10 +157,6 @@ if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
 	print(USAGE)
 	sys.exit(2)
-if include_DP not in [0, 1]:
-	print("include_DP must be 0 or 1")
-	print(USAGE)
-	sys.exit(2)
 if include_ridge_push not in [0, 1]:
 	print("include_ridge_push must be 0 or 1")
 	print(USAGE)
@@ -173,10 +165,6 @@ if formulation not in [1, 2]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
-if include_DP == 0:
-	print("trying to set include_DP=0. Can't do that - just set DP_ref = 0...")
-	sys.exit(1)
-
 # calculation parameters
 const_slab_depth = 0  			# 0 = use lallemand depths, 1 = all slabs go to 660 km
 limit_max_depth = 0  			# 0 = no slab depth limit,  1 = limit depth to 660
@@ -306,10 +294,7 @@ else:
 	signs_y_param = signs_lith_visc
 	rms_y_param = rms_lith_visc
 
-if include_DP == 0:
-	DP_string=''
-else:
-	DP_string = ''.join(['.DP',str("%.3g" % (DP_ref/1e6)),'MPa'])
+DP_string = '.DP{:.3g}MPa'.format(DP_ref/1e6) if DP_ref > 0 else ''
 
 if formulation == 1:  # viscous bending
 	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
