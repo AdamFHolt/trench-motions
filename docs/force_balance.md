@@ -60,7 +60,7 @@ The force per unit trench length acting over the slab face (depth $D$) is $F_{DP
 
 $$C_{DP} = \frac{D \cdot \Delta P_0 \cdot w}{\eta_{A,\text{ref}} \cdot w_\text{ref} \cdot v_{t,\text{ref}}}$$
 
-the dynamic pressure force $F_{DP} = \eta_A \, C_{DP} \, v_t$ acts in the direction of plate motion, driving $v_{sp}$ when the trench retreats ($v_t > 0$). Reference values: $\eta_{A,\text{ref}} = 3\times10^{20}$ Pa·s, $w_\text{ref} = 4448$ km, $v_{t,\text{ref}} = 5$ cm/yr. The canonical $\Delta P_0 = 23.5$ MPa is the analytically-derived maximum for a free-slip mantle base.
+the dynamic pressure force $F_{DP} = \eta_A \, C_{DP} \, v_t$ acts in the direction of plate motion, driving $v_{sp}$ when the trench retreats ($v_t > 0$). Reference values: $\eta_{A,\text{ref}} = 3\times10^{20}$ Pa·s, $w_\text{ref} = 4448$ km, $v_{t,\text{ref}} = 5$ cm/yr. The canonical $\Delta P_0 = 23.5$ MPa is the analytically-derived maximum for a free-slip mantle base using Roydena and Holt (2020,doi:10.1029/2019GC008771)
 
 ---
 
