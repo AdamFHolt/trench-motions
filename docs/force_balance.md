@@ -84,7 +84,7 @@ The denominator $\eta_A((2L_p + L_s)/h + C_{DP})$ is the total resistance to sla
 
 ### Trench velocity
 
-$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
+$$v_t = v_{sp} - v_c$$
 
 ---
 
@@ -100,9 +100,7 @@ The only difference from F1 is the bending term. Once the lithosphere yields, th
 
 $$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
-### Trench velocity
-
-$$v_t = v_{sp} - v_c \qquad \text{(positive = trench retreats / slab outpaces convergence)}$$
+$$v_t = v_{sp} - v_c$$
 
 ---
 
