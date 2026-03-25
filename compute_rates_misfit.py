@@ -153,6 +153,12 @@ def suite_out_path(suite, relative_path):
 	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
 	return os.path.join(base_ref_dir, formulation_slug(formulation), suite, relative_path)
 
+def clear_suite(suite):
+	d = suite_out_path(suite, '')
+	if os.path.isdir(d):
+		shutil.rmtree(d)
+	os.makedirs(d)
+
 if vt_ref not in ['hs3', 'nnr', 'sa']:
 	print("Invalid vt_ref: %s" % vt_ref)
 	print(USAGE)
@@ -165,6 +171,9 @@ if formulation not in [1, 2]:
 	print("unsupported formulation: %s" % formulation)
 	print(USAGE)
 	sys.exit(2)
+clear_suite('param-sweep')
+clear_suite('best-fit')
+
 # calculation parameters
 const_slab_depth = 0  			# 0 = use lallemand depths, 1 = all slabs go to 660 km
 limit_max_depth = 0  			# 0 = no slab depth limit,  1 = limit depth to 660
