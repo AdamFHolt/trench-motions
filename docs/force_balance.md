@@ -68,7 +68,7 @@ the dynamic pressure force $F_{DP} = \eta_A  C_{DP}  v_t$ acts in the direction 
 
 ### Force balance
 
-$$\boxed{D B g + F_R + \underbrace{\eta_A C_{DP}  (v_c - v_{sp})}_{\text{dynamic pressure}} \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L  v_c}_{\text{viscous bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}}}$$
+$$\boxed{D B g + F_R + \underbrace{\eta_A C_{DP}  (v_c - v_{sp})}_{\text{dynamic pressure}} = \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L  v_c}_{\text{viscous bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}}}$$
 
 - **Plate drag** and **slab drag** both scale with the absolute plate velocity $v_{sp}$.
 - **Dynamic pressure** scales with the trench velocity $v_t = v_c - v_{sp}$ and drives $v_{sp}$ when the trench retreats ($v_t > 0$).
@@ -92,7 +92,7 @@ $$v_t = v_c - v_{sp}$$
 
 ### Force balance
 
-$$\boxed{D B g + F_R + \underbrace{\eta_A C_{DP}  (v_c - v_{sp})}_{\text{dynamic pressure}} \;=\; \underbrace{\frac{1}{6}\frac{H^2}{R}\sigma_Y}_{\text{plastic bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}}}$$
+$$\boxed{D B g + F_R + \underbrace{\eta_A C_{DP}  (v_c - v_{sp})}_{\text{dynamic pressure}} = \underbrace{\frac{1}{6}\frac{H^2}{R}\sigma_Y}_{\text{plastic bending}} + \underbrace{2\eta_A \frac{L_p}{h} v_{sp}}_{\text{plate drag}} + \underbrace{\eta_A \frac{L_s}{h} v_{sp}}_{\text{slab drag}}}$$
 
 The only difference from F1 is the bending term. Once the lithosphere yields, the bending moment is set by the yield stress $\sigma_Y$ and geometry alone — it is **independent of velocity** and **independent of $\eta_L$**. This has a qualitatively different scaling: in F1 bending resistance grows with $v_c$, in F2 it is fixed.
 
