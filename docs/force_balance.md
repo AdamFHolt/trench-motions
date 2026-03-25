@@ -8,7 +8,7 @@
 | $v_c$ | `vc` | Convergence velocity (subducting − overriding) | m/s |
 | $v_t = v_c - v_{sp}$ | — | Trench velocity (positive = retreat). The code computes `vt_estimate = vc/vel_converter − vsp = vt` (both in cm/yr); a positive `vt_estimate` means retreat. | cm/yr |
 | $\eta_A$ | `visc_asthen` | Asthenosphere viscosity | Pa·s |
-| $\eta_L$ | `visc_lith` | Lithosphere viscosity | Pa·s |
+| $\eta_L$ | `visc_lith` | Lithosphere viscosity (F1 only) | Pa·s |
 | $h$ | `h` | Asthenosphere channel thickness | m |
 | $H$ | `H` | Lithosphere thickness (thermal isotherm depth) | m |
 | $R$ | `Rmin` | Minimum radius of curvature at trench | m |
