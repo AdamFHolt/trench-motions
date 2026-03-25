@@ -1,6 +1,6 @@
 # trench-motions 
 
-This repository contains analytical subduction/trench-motion modeling scripts and supporting datasets.
+This repository contains scripts to compute and plot trench motion predictions from a simple force balance.
 
 ## Start Here 
 Run from repository root.
@@ -71,7 +71,7 @@ Single direct run:
 python3 compute_rates_single.py sa 1 23.5e6 1e21 1e22
 ```
 
-For full CLI options and arguments:
+For all arguments:
 ```bash
 python3 compute_rates_misfit.py --help
 python3 compute_rates_single.py --help
