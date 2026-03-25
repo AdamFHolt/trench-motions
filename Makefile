@@ -8,7 +8,7 @@ FORMULATIONS ?= 1 2
 DP_REF_VALUES ?= 0 2.35e7
 SUMMARY_SUITES ?= best-fit
 
-.PHONY: venv install run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary
+.PHONY: venv install download-age-grid run-matrix run-matrix-maps matrix-summary run-matrix-with-summary run-matrix-maps-with-summary
 
 # ---------------------------------------------------------------------------
 # Setup (one-time)
@@ -22,6 +22,12 @@ venv:
 install:
 	$(VENV_DIR)/bin/pip install --upgrade pip
 	$(VENV_DIR)/bin/pip install -r requirements.txt
+
+# Download the oceanic age grid (Müller et al. 2008, NGDC). Only needed for map backgrounds.
+download-age-grid:
+	curl -L -o data/age.3.6.nc.bz2 https://www.ngdc.noaa.gov/mgg/ocean_age/data/2008/grids/age/age.3.6.nc.bz2
+	bunzip2 data/age.3.6.nc.bz2
+	mv data/age.3.6.nc data/age.3.6.NaN.grd
 
 # ---------------------------------------------------------------------------
 # Building blocks (can be run independently)

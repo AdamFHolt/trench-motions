@@ -10,7 +10,7 @@
 | `vt/tnew.nnr.dat` | Observed trench velocities, NNR reference frame |
 | `vt/tnew.sa.dat` | Observed trench velocities, South America reference frame |
 | `vt/details.txt` | Notes on the observed velocity files |
-| `age.3.6.NaN.grd` | Oceanic plate age raster (Müller et al.); used as map background only — **not tracked in repo (25 MB); download separately** |
+| `age.3.6.NaN.grd` | Oceanic plate age raster (Müller et al.); used as map background only — **not tracked in repo (25 MB); run `make download-age-grid`** |
 | `PB2002_tdiddy.gmt` | Bird (2002) plate boundaries in GMT 2-point segment format; used as map background only |
 
 ---

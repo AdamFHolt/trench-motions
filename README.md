@@ -95,7 +95,10 @@ If `DATASETS_DIR` is not set, map plotting auto-detects a flat layout in `data/`
 - `data/PB2002_tdiddy.gmt`
 If these datasets are missing, map plotting still runs, but without the age raster background and PB2002 boundary overlay.
 
-`PB2002_tdiddy.gmt` is tracked in this repository. `age.3.6.NaN.grd` is not (25 MB); obtain it from the EarthByte/Müller et al. oceanic age grid distribution and place it at `data/age.3.6.NaN.grd`.
+`PB2002_tdiddy.gmt` is tracked in this repository. `age.3.6.NaN.grd` is not (25 MB); download it with:
+```bash
+make download-age-grid
+```
 
 ## Future improvements
 

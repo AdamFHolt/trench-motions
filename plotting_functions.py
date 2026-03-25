@@ -117,18 +117,8 @@ def resolve_dataset_files(datasets_dir=''):
         age_grd = os.path.join(datasets_dir, 'age', 'age.3.6.NaN.grd')
         pb_file = os.path.join(datasets_dir, 'plate_boundaries', 'bird_PB2002', 'PB2002_tdiddy.gmt')
     else:
-        age_grd = os.path.join('data', 'gmt_datasets', 'age', 'age.3.6.NaN.grd')
-        pb_file = os.path.join('data', 'gmt_datasets', 'plate_boundaries', 'bird_PB2002', 'PB2002_tdiddy.gmt')
-
-    # Support flat layout in data/
-    if not os.path.isfile(age_grd):
-        flat_age = os.path.join('data', 'age.3.6.NaN.grd')
-        if os.path.isfile(flat_age):
-            age_grd = flat_age
-    if not os.path.isfile(pb_file):
-        flat_pb = os.path.join('data', 'PB2002_tdiddy.gmt')
-        if os.path.isfile(flat_pb):
-            pb_file = flat_pb
+        age_grd = os.path.join('data', 'age.3.6.NaN.grd')
+        pb_file = os.path.join('data', 'PB2002_tdiddy.gmt')
 
     return age_grd if os.path.isfile(age_grd) else None, pb_file if os.path.isfile(pb_file) else None
 
