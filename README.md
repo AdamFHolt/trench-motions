@@ -18,8 +18,8 @@ make run-matrix-with-summary
 ```
 
 3. Look at results:
-- Sweep products (heatmaps, vt-param plots, diagnostics): `plots/<hs3|nnr|sa>/<model>/param-sweep/`
-- Map products and prediction tables: `plots/<hs3|nnr|sa>/<model>/maps/`
+- Sweep products (heatmaps): `plots/<hs3|nnr|sa>/<model>/param-sweep/`
+- Best-fit outputs (vt-param plots, correlation, force-budget map, prediction table): `plots/<hs3|nnr|sa>/<model>/best-fit/`
 - Summary table and bar plots: `plots/summary/`
 
 4. Optional sweep only (no summary step):
@@ -43,13 +43,9 @@ make run-matrix-maps-with-summary
 ## Project Layout
 - Inputs: `data/` and `data/vt/`.
 - Active outputs:
-  - `plots/<hs3|nnr|sa>/<model>/param-sweep/` for parameter sweeps.
-  - `plots/<hs3|nnr|sa>/<model>/maps/` for map products and predicted trench-motion tables.
-  - `plots/summary/` for summary CSV and grouped bar plots.
-  - direct script runs without `--out-prefix` write under `plots/<vt_ref>/<model>/...`.
-- Archived generated outputs: `archive/generated/`.
-- Archived reference files: `archive/reference/`.
-- Archived legacy scripts: `archive/legacy/`.
+  - `plots/<hs3|nnr|sa>/<model>/param-sweep/` — misfit heatmaps.
+  - `plots/<hs3|nnr|sa>/<model>/best-fit/` — prediction tables, vt-param plots, correlation, force-budget map, global map.
+  - `plots/summary/` — summary CSV and grouped bar plots.
 
 ## Runtime notes
 - Active scripts are Python 3 compatible.
@@ -94,8 +90,7 @@ Example:
 export DATASETS_DIR=/path/to/datasets
 ```
 
-If `DATASETS_DIR` is not set, map plotting looks in `data/gmt_datasets`.
-It also auto-detects a flat layout in `data/`:
+If `DATASETS_DIR` is not set, map plotting auto-detects a flat layout in `data/`:
 - `data/age.3.6.NaN.grd`
 - `data/PB2002_tdiddy.gmt`
 If these datasets are missing, map plotting still runs, but without the age raster background and PB2002 boundary overlay.

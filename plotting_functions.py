@@ -649,7 +649,7 @@ def save_vt_param_plot(segments, H, oceanic_buoy, ridge_push,
     g = 9.81
     ma_to_s = 1e6 * 365 * 24 * 60 * 60
     kappa = 1e-6; alpha = 3e-5; dT = 1300.0; rho0 = 3300.0; rhoW = 1000.0
-    h_fixed = 200e3          # m (F1/F2 only; F3/F4 override internally)
+    h_fixed = 200e3          # m
     visc_asthen_ref = 3e20
     w_ref = 2224e3 * 2
     trenchv_ref = 5.0 * vel_converter

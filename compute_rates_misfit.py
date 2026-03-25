@@ -16,7 +16,7 @@ def ensure_parent_dir(path):
 
 USAGE = """Usage:
   python3 compute_rates_misfit.py <vt_ref> <formulation> <include_DP> <DP_ref> <include_ridge_push> [--smoke] [--skip-map] [--out-prefix <dir>]
-  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1-3>] [--smoke] [--skip-map] [--out-prefix <dir>]
+  python3 compute_rates_misfit.py --config <path.yaml> [--vt-ref <hs3|nnr|sa>] [--formulation <1|2>] [--smoke] [--skip-map] [--out-prefix <dir>]
 
 Arguments:
   vt_ref                hs3 | nnr | sa
@@ -27,7 +27,7 @@ Arguments:
 
 Optional flags:
   --vt-ref <hs3|nnr|sa>  Override vt_ref (mainly for shared configs).
-  --formulation <1-5>   Override formulation (mainly for shared configs).
+  --formulation <1|2>   Override formulation (mainly for shared configs).
   --smoke     Use a small 3x3 parameter grid for fast checks.
   --skip-map  Skip full map plotting calls (quick plot is still generated).
   --out-prefix <dir>  Write generated outputs under a custom base directory.
@@ -85,7 +85,7 @@ else:
 	main_args = args_wo_config[:5]
 	extra_args = args_wo_config[5:]
 	vt_ref=str(main_args[0])    				# hs3, nnr, sa
-	formulation=int(main_args[1])			# 1 = regular, 2 = plastic bending, 3 = regular, hSP \propto LSP
+	formulation=int(main_args[1])			# 1 = viscous bending, 2 = plastic bending
 	include_DP=int(main_args[2])				# 1 = include DP force, 0 = do not
 	DP_ref=float(main_args[3]) 				# DP values from analytical computations: free slip base: avg DP_0 = 18.3, max DP_0 = 23.5, no slip: avg DP_0 = 73.1, max DP_0 = 93.9 MPa
 	include_ridge_push=int(main_args[4]) 	# 0 = no ridge push, 1 = approximation for ridge push
@@ -181,16 +181,13 @@ if include_DP == 0:
 const_slab_depth = 0  			# 0 = use lallemand depths, 1 = all slabs go to 660 km
 limit_max_depth = 0  			# 0 = no slab depth limit,  1 = limit depth to 660
 use_avg_Rmin = 1      			# 1 = for segments without an Rmin, use the global average.
-get_DP_from_dip = 1 			# 0 = no DP from dip (get DP from analytical slab wall), 1 = DP from dip, -1 = DP from dip (in opposite direction)
-
 # less important calculation parameters:
 interpolate_shallow_dip = 0 # doesn't improve things
 limit_max_age = 0     		# has a negligible effect
 
 # reference parameters
-vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s  
+vel_converter = 0.01/(365. * 24. * 60. * 60.) ; # cm/yr to m/s
 h = 200e3; # m
-n = 3.5;
 g = 9.81;
 ma_to_s = 1e6 * 365 * 24 * 60 * 60;
 kappa = 1e-6; alpha = 3.e-5
