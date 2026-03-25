@@ -54,7 +54,7 @@ run-matrix-maps:
 
 # Aggregate sweep results across all frames and models into summary CSV and
 # bar plots under plots/summary/. Can be re-run without re-running sweeps.
-# SUMMARY_SUITES controls which output suites are included (default: param-sweep).
+# SUMMARY_SUITES controls which output suites are included (default: best-fit).
 matrix-summary:
 	$(PYTHON) matrix_summary.py --runs-dir plots --suites $(SUMMARY_SUITES) --output-dir plots/summary
 
