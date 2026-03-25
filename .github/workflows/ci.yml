@@ -26,6 +26,5 @@ jobs:
         run: |
           python3 compute_rates_misfit.py --help
           python3 compute_rates_single.py --help
-          python3 create_trench_motion_table.py --help
-          make smoke
-          make single-smoke
+          python3 compute_rates_misfit.py --config configs/misfit_smoke.yaml --skip-map
+          python3 compute_rates_single.py --config configs/single_smoke.yaml --skip-map
