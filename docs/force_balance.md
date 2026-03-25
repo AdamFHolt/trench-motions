@@ -15,7 +15,7 @@
 | $D$ | `slabD` | Slab depth | m |
 | $L_p$ | `Lsp` | Plate drag length: length of subducting plate, ridge-to-trench (col 26, `LSP, simplified`) | m |
 | $L_s$ | `slabL` | Slab drag length: measured slab length (Lallemand col 8, `L`) | m |
-| $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
+| $B$ | `oceanic_buoy` | Integrated oceanic buoyancy ($\int \rho_0 \alpha \Delta T \, \mathrm{erfc}\left(\frac{z}{2\sqrt{\kappa t}}\right) dz$) | kg/m² |
 | $F_R$ | `ridge_push` | Ridge push force per unit trench length | N/m |
 | $g$ | — | Gravitational acceleration (9.81 m/s²) | m/s² |
 | $\sigma_Y$ | `yield_stress` | Lithospheric yield stress (F2 only) | Pa |
@@ -27,9 +27,9 @@
 
 $H$ and $B$ are computed from the oceanic plate age via the error-function cooling model:
 
-$$H = \mathrm{erfcinv}\!\left(\frac{T_1 - T_{iso}}{\Delta T}\right) \cdot 2\sqrt{\kappa \, t}$$
+$$H = \mathrm{erfcinv}\left(\frac{T_1 - T_{iso}}{\Delta T}\right) \cdot 2\sqrt{\kappa \, t}$$
 
-$$B = \int_0^\infty \rho_0 \, \alpha \, (T_1 - T(z)) \, dz \quad \text{where} \quad T(z) = T_1 - \Delta T \cdot \mathrm{erfc}\!\left(\frac{z}{2\sqrt{\kappa t}}\right)$$
+$$B = \int_0^\infty \rho_0 \, \alpha \, (T_1 - T(z)) \, dz \quad \text{where} \quad T(z) = T_1 - \Delta T \cdot \mathrm{erfc}\left(\frac{z}{2\sqrt{\kappa t}}\right)$$
 
 The ridge push force integrates the horizontal pressure gradient from the elevated ridge:
 
