@@ -4,9 +4,9 @@
 
 | Symbol | Code variable | Description | Units |
 |--------|--------------|-------------|-------|
-| $v_{sp}$ | `vsp` | Subducting plate velocity / slab pull rate (output of `compute_vsp_withDP`) | m/s |
+| $v_{sp}$ | `vsp` | Subducting plate velocity / slab pull rate (output of `compute_vsp_withDP`) | cm/yr |
 | $v_c$ | `vc` | Convergence velocity (subducting − overriding) | m/s |
-| $v_t = v_{sp} - v_c$ | — | Physical trench retreat velocity (positive = retreat). **Note:** the code computes `vt_estimate = vc − vsp = −vt` for comparison with observations, so a negative `vt_estimate` means retreat. | m/s |
+| $v_t = v_{sp} - v_c$ | — | Physical trench retreat velocity (positive = retreat). **Note:** the code computes `vt_estimate = vc/vel_converter − vsp = −vt` (both in cm/yr) for comparison with observations, so a negative `vt_estimate` means retreat. | cm/yr |
 | $\eta_A$ | `visc_asthen` | Asthenosphere viscosity | Pa·s |
 | $\eta_L$ | `visc_lith` | Lithosphere viscosity | Pa·s |
 | $h$ | `h` | Asthenosphere channel thickness | m |
@@ -39,7 +39,7 @@ $$F_R = g \, \rho_0 \, \alpha \, \Delta T \left(1 + \frac{2\rho_0 \alpha \Delta 
 
 ## Physical Overview
 
-The force balance equates **driving forces** (slab pull, ridge push) against **resisting forces** (bending, plate drag, slab drag, mantle back-pressure) per unit trench length. All formulations share the same structure — they differ only in how the bending term and asthenosphere channel thickness $h$ are treated.
+The force balance equates **driving forces** (slab pull, ridge push) against **resisting forces** (bending, plate drag, slab drag, mantle back-pressure) per unit trench length. All formulations share the same structure — they differ only in how the bending term is treated.
 
 The unknowns are $v_{sp}$ (and equivalently $v_t = v_{sp} - v_c$). The convergence velocity $v_c$ is an observable input; all other terms are either observed (geometry, age) or swept parameters (viscosities).
 
@@ -78,7 +78,7 @@ $$\boxed{D B g + F_R \;=\; \underbrace{\frac{2}{3}\frac{H^3}{R^3}\eta_L \, v_c}_
 
 Substituting $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$ and collecting $v_{sp}$ terms:
 
-$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{2}{3}\dfrac{H^3}{R^3}\eta_L \, v_c + \eta_A C_{DP} v_c}{\eta_A\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
 The denominator $\eta_A((2L_p + L_s)/h + C_{DP})$ is the total resistance to slab motion. The $+\eta_A C_{DP} v_c$ in the numerator is an algebraic artifact of expanding $F_{DP} = \eta_A C_{DP}(v_{sp} - v_c)$; it is not a physical driving force.
 
@@ -98,7 +98,7 @@ The only difference from F1 is the bending term. Once the lithosphere yields, th
 
 ### Solved for $v_{sp}$
 
-$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y + \eta_A C_{DP} v_c}{\eta_A\!\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
+$$\boxed{v_{sp} = \frac{D B g + F_R - \dfrac{1}{6}\dfrac{H^2}{R}\sigma_Y + \eta_A C_{DP} v_c}{\eta_A\left(\dfrac{2L_p + L_s}{h} + C_{DP}\right)}}$$
 
 $$v_t = v_{sp} - v_c$$
 
