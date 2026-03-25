@@ -71,6 +71,7 @@ plots/sketch/                             # hand-drawn / reference figures (trac
 | sa    | 3.08 cm/yr | 84/120   |
 
 Results stale — rerun needed with corrected drag lengths (Lsp=col26, slabL=col8) and 4-model matrix.
+Note: active segment count is 120 (not 98 as previously stated).
 
 ## Map data
 
@@ -94,11 +95,12 @@ Age grid and plate boundaries are cached in memory across map calls (module-leve
 Run `make run-matrix-with-summary` (12 runs: 2 formulations × 2 DP cases × 3 frames).
 This will populate `plots/` with corrected drag lengths and produce the 4-bar summary figures.
 
-### B) Dataset audit — which segments are included/excluded
-Understand which of the ~160 Lallemand rows make it into the active set (~98) and why others are dropped.
-- Inclusion filter checks cols 6 (dip), 7 (slabD), 8 (slabL), 13 (Rmin), 20 (age), 26 (Lsp) for NaN
-- Useful outputs: table of included vs. excluded segments; map; parameter distributions
-- Flag segments where observed vt is missing in one or more reference frames
+### B) Dataset audit — which segments are included/excluded ✓ done
+159 rows total → **120 included**, 39 excluded. Run `python dataset_audit.py --csv plots/audit/segment_audit.csv`.
+- Primary exclusion reason: missing dip (col 6) — 35 segments (Philippines, Nankai, Mexico, S.Chile, Antilles)
+- Also: missing slabL (13), slabD (5), age/Lsp (1 each)
+- 41 segments had Rmin filled with global mean (243 km) before the filter
+- All 120 included segments have observed vt in all 3 reference frames
 
 ### C) Collaborator handoff — final checks before passing to student
 - Confirm end-to-end run from clean clone (`make run-matrix-with-summary`)
