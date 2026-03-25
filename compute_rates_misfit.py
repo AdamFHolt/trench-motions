@@ -236,7 +236,7 @@ azims = segments['azims']
 w = segments['w']
 slabL_buoy = segments['slabL_buoy']
 
-H, oceanic_buoy, ride_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
+H, oceanic_buoy, ridge_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
 
 rms_min = 10.0
 num_sign_matches_max = 0
@@ -250,7 +250,7 @@ for k in range(0,len(lith_viscs)):
 		yield_sigma = yield_stress[k,j];
 
 		vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-			w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ride_push)
+			w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ridge_push)
 
 		vt_estimate = (vc/vel_converter) - vsp_estimate
 
@@ -335,7 +335,7 @@ vt_param_plot_name = suite_out_path(
 try:
 	save_vt_param_plot(
 		segments=segments,
-		H=H, oceanic_buoy=oceanic_buoy, ridge_push=ride_push,
+		H=H, oceanic_buoy=oceanic_buoy, ridge_push=ridge_push,
 		formulation=formulation,
 		visc_lith=10**rms_lith_visc,
 		visc_asthen=10**rms_asthen_visc,
@@ -371,10 +371,10 @@ visc_lith_best = 10**rms_lith_visc
 visc_asthen_best = 10**rms_asthen_visc
 vsp_best = compute_vsp_withDP(formulation, vc, h, visc_asthen_best, visc_lith_best, H, Lsp,
 	Rmin, slabL, slabL_buoy, dip, oceanic_buoy, DP_ref, visc_asthen_ref,
-	w_ref, trenchv_ref, w, slabD, rms_yield_stress*1e6, pre, ride_push)
+	w_ref, trenchv_ref, w, slabD, rms_yield_stress*1e6, pre, ridge_push)
 try:
 	save_force_budget_map(
-		segments=segments, H=H, oceanic_buoy=oceanic_buoy, ridge_push=ride_push,
+		segments=segments, H=H, oceanic_buoy=oceanic_buoy, ridge_push=ridge_push,
 		formulation=formulation,
 		visc_lith=visc_lith_best, visc_asthen=visc_asthen_best, h=h,
 		DP_ref=DP_ref, visc_asthen_ref=visc_asthen_ref, w_ref=w_ref, trenchv_ref=trenchv_ref,

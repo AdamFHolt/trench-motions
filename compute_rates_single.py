@@ -1,16 +1,11 @@
 #!/usr/bin/env python3
 
-import matplotlib
-matplotlib.use('Agg')
 import os, numpy as np
 import sys, tempfile, shutil
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import yaml
 from functions import compute_vsp_withDP
 from plotting_functions import save_quick_plot, save_trench_motion_map
 from workflow_common import get_vt_col, build_vt_table_from_tnew, preprocess_data_table, build_segment_arrays, build_thermal_terms
-plt.ioff()
 
 
 def ensure_parent_dir(path):
@@ -118,11 +113,6 @@ def out_path(relative_path):
 	return os.path.join(base_ref_dir, formulation_slug(formulation), 'best-fit', relative_path)
 
 
-def misfit_plot_out_path(filename):
-	base_ref_dir = out_prefix if out_prefix else os.path.join('plots', vt_ref)
-	return os.path.join(base_ref_dir, formulation_slug(formulation), 'param-sweep', filename)
-
-
 def formulation_slug(formulation_id):
 	base = {1: 'viscous', 2: 'plastic'}.get(formulation_id)
 	if base is None:
@@ -157,12 +147,6 @@ kappa = 1e-6; alpha = 3.e-5
 dT = 1300.
 rho0 = 3300.; rhoW = 1000.
 
-# search parameters
-lith_visc_min = 20; lith_visc_max = 25
-asth_visc_min = 17; asth_visc_max = 22
-yield_min = 100e6; 	yield_max = 10000e6;
-
-
 # DP stuff (SI units), used in all active formulations
 visc_asthen_ref =  3e20
 w_ref = 2224e3 * 2 # [m], factor 2 to convert from half width to full width,  (2224km = 20 degrees)
@@ -195,7 +179,7 @@ azims = segments['azims']
 w = segments['w']
 slabL_buoy = segments['slabL_buoy']
 
-H, oceanic_buoy, ride_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
+H, oceanic_buoy, ridge_push = build_thermal_terms(age, include_ridge_push, dT, g, rho0, rhoW, alpha, kappa, ma_to_s)
 
 rms_min = 10.0
 num_sign_matches_max = 0
@@ -207,7 +191,7 @@ yield_sigma = 1
 pre = 1
 
 vsp_estimate = compute_vsp_withDP(formulation,vc,h,visc_asthen,visc_lith,H,Lsp,Rmin,slabL,slabL_buoy,dip,oceanic_buoy,DP_ref,visc_asthen_ref,\
-	w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ride_push)
+	w_ref,trenchv_ref,w,slabD,yield_sigma,pre,ridge_push)
 
 vt_estimate = (vc/vel_converter) - vsp_estimate
 rms_sum = 0; num_sign_matches = 0;
@@ -239,18 +223,13 @@ print("Minimum RMS = %.2f cm/yr, Signs %.0f/%.0f" % (rms_min,num_sign_matches_ma
 
 DP_string = '.DP{:.3g}MPa'.format(DP_ref/1e6) if DP_ref > 0 else ''
 
-if formulation == 1:  # viscous bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.viscous_bending.png'])
-elif formulation == 2: # plastic bending
-	plot_name=''.join(['misfits_',str(vt_ref),'model',DP_string,'.plastic_bending.png'])
-plot_name = misfit_plot_out_path(plot_name)
-
 if formulation == 2:
 	param_suffix = '.y{}_a{}'.format(rms_yield_stress, rms_asthen_visc)
 else:
 	param_suffix = '.l{}_a{}'.format(rms_lith_visc, rms_asthen_visc)
 rms_name = out_path('bestfit' + DP_string + param_suffix)
 map_name = out_path('map' + DP_string + param_suffix)
+quick_plot_name = out_path('correlation' + DP_string + param_suffix + '.png')
 
 # best-fit outputs
 bestfit_txt = rms_name + '.txt'
@@ -264,7 +243,7 @@ if skip_map:
 		save_quick_plot(
 			predicted_path=bestfit_txt,
 			observed_path=os.path.join('data', 'vt', vt_observed),
-			output_path=plot_name,
+			output_path=quick_plot_name,
 			title='Single-run quick check ({})'.format(vt_ref),
 		)
 	except Exception as exc:
@@ -284,4 +263,4 @@ else:
 		)
 	finally:
 		shutil.rmtree(tmp_dir, ignore_errors=True)
-print("output: %s" % plot_name)
+print("output: %s" % (quick_plot_name if skip_map else map_name + '.png'))

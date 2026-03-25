@@ -5,7 +5,7 @@
 | File | Description |
 |------|-------------|
 | `Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.txt` | Main model input — 159 subduction segments, whitespace-delimited, no header |
-| `Lallemand_et_al-2005_G3_dataset.xlsx` | Spreadsheet version with column headers; authoritative reference for column meanings |
+| `Lallemand_et_al-2005_G3_dataset_WithAdditionalParams.xlsx` | Spreadsheet version with column headers; authoritative reference for column meanings |
 | `vt/tnew.hs3.dat` | Observed trench velocities, HS3 reference frame (174 rows) |
 | `vt/tnew.nnr.dat` | Observed trench velocities, NNR reference frame |
 | `vt/tnew.sa.dat` | Observed trench velocities, South America reference frame |
@@ -73,8 +73,7 @@ A segment is included in the model if **all** of the following columns are non-N
 | 26 | Lsp | — |
 
 **Result: 120 of 159 segments included.** The 39 excluded segments fail primarily
-on missing dip (35 segments: Philippines, Nankai, Mexico, S. Chile, Antilles),  trench positions within each broader plate group (e.g., Sumatra+Java+Andaman combined), or should it come from
-
+on missing dip (35 segments: Philippines, Nankai, Mexico, S. Chile, Antilles),
 followed by missing slabL (13) and slabD (5). All 120 included segments have
 observed v_T in all three reference frames.
 
@@ -82,14 +81,19 @@ observed v_T in all three reference frames.
 
 ## Observed velocity files: `vt/tnew.*.dat`
 
-Six-column whitespace-delimited files, one row per segment:
+Nine-column whitespace-delimited files, one row per segment:
 
 | Col (0-based) | Description |
 |---|---|
 | 0 | Longitude (°E) |
 | 1 | Latitude (°N) |
-| 2–4 | (intermediate columns) |
-| 5 | Trench velocity v_T (mm/yr); positive = trench retreat |
+| 2 | Tangential azimuth (°) |
+| 3 | vE_trench — eastward trench velocity (mm/yr) |
+| 4 | vN_trench — northward trench velocity (mm/yr) |
+| 5 | vnormal_trench — trench-normal velocity v_T (mm/yr); **used by model**; positive = trench retreat |
+| 6 | vE_plate — eastward plate velocity (mm/yr) |
+| 7 | vN_plate — northward plate velocity (mm/yr) |
+| 8 | vnnormal_plate — plate-normal velocity (mm/yr) |
 
 Segments are matched to the main dataset by rounded (lat, lon) coordinates
 (tolerance 0.1°). All 120 model-included segments are present in all three files.
