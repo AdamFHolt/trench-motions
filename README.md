@@ -96,3 +96,8 @@ If `DATASETS_DIR` is not set, map plotting auto-detects a flat layout in `data/`
 If these datasets are missing, map plotting still runs, but without the age raster background and PB2002 boundary overlay.
 
 `PB2002_tdiddy.gmt` is tracked in this repository. `age.3.6.NaN.grd` is not (25 MB); obtain it from the EarthByte/Müller et al. oceanic age grid distribution and place it at `data/age.3.6.NaN.grd`.
+
+## Future improvements
+
+- **Update subduction zone parameters from newer sources** (e.g. slab dip, depth, length). The Lallemand et al. (2005) dataset excludes 39 of 159 segments due to missing parameters — a more complete modern compilation would increase coverage and reduce this exclusion rate.
+- **Refine plate and trench geometry estimates** — in particular the ridge-to-trench distance ($L_{sp}$, col 26) and the along-strike trench width ($w$, col 25), which were estimated manually. These could be recalculated systematically from up-to-date plate boundary and spreading ridge datasets.
