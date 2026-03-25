@@ -131,8 +131,11 @@ def load_age_grid(age_grd):
     if age_grd in _age_grid_cache:
         return _age_grid_cache[age_grd]
     with netcdf_file(age_grd, 'r', mmap=False) as f:
-        lon = np.array(f.variables['lon'][:], dtype=float)
-        lat = np.array(f.variables['lat'][:], dtype=float)
+        keys = list(f.variables.keys())
+        lon_key = 'lon' if 'lon' in keys else 'x'
+        lat_key = 'lat' if 'lat' in keys else 'y'
+        lon = np.array(f.variables[lon_key][:], dtype=float)
+        lat = np.array(f.variables[lat_key][:], dtype=float)
         z = np.array(f.variables['z'][:], dtype=float)
     result = lon, lat, z
     _age_grid_cache[age_grd] = result
